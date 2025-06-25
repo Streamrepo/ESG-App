@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import os
+st.write("Files in current directory:", os.listdir())
 
 # --- Normalization Functions ---
 def scale(value, high, low):
