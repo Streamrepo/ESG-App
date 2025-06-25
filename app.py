@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
-# --- Normalization Functions ---
 
+# --- Normalization Functions ---
 def scale(value, high, low):
     return max(0, min(100, 100 * (high - value) / (high - low)))
 
@@ -31,9 +31,9 @@ def normalize_transition_plan(value):
     }
     return scores.get(str(value), 0)
 
-
+# --- Streamlit Setup ---
 st.set_page_config(page_title="ESG Analyser", layout="centered")
-st.title("🌿 ESG Analyser - Upload Your Company Data")
+st.title("\U0001F33F ESG Analyser - Upload Your Company Data")
 
 # Section: File Upload
 st.header("1. Upload ESG Data CSV")
@@ -81,9 +81,97 @@ if uploaded_file:
                     diff = user_val - benchmark_val
                     direction = "above" if diff > 0 else "below" if diff < 0 else "equal to"
                     st.write(f"**{col}**: {user_val} (You) vs {benchmark_val} (Benchmark) → {abs(diff):.2f} {direction}")
-
             else:
                 st.error("❌ No benchmark found for this industry and size.")
+
+            # --- ESG Scoring ---
+            st.header("3. ESG Scoring (CSRD/SFDR-Aligned)")
+
+            e_score = (
+                0.4 * normalize_ghg_emissions(company["GHG Emissions (tCO₂e)"]) +
+                0.2 * normalize_renewable_energy(company["Renewable Energy %"]) +
+                0.2 * normalize_water_usage(company["Water Usage (m³)"]) +
+                0.2 * normalize_waste_recycled(company["Waste Recycled %"])
+            )
+
+            s_score = (
+                0.3 * normalize_biodiversity(company["Biodiversity Risk %"]) +
+                0.3 * normalize_gender_pay_gap(company["Gender Pay Gap %"]) +
+                0.4 * normalize_board_diversity(company["Board Diversity %"])
+            )
+
+            g_score = (
+                0.5 * normalize_exec_remuneration(company["ESG KPIs in Exec Pay"]) +
+                0.5 * normalize_transition_plan(company["Transition Plan"])
+            )
+
+            esg_score = (0.5 * e_score) + (0.3 * s_score) + (0.2 * g_score)
+
+            st.write(f"\U0001F331 Environmental Score: {e_score:.1f}/100")
+            st.write(f"\U0001F91D Social Score: {s_score:.1f}/100")
+            st.write(f"\U0001F3DB️ Governance Score: {g_score:.1f}/100")
+            st.subheader(f"\U0001F3AF **Total ESG Score: {esg_score:.2f}/100**")
+
+            # --- CSRD/ESRS Compliance ---
+            st.header("4. CSRD/ESRS Compliance Mapping")
+
+            try:
+                esrs_ref = pd.read_csv("esrs_reference.csv", encoding="utf-8")
+            except:
+                st.error("⚠️ Could not load ESRS reference data.")
+                esrs_ref = None
+
+            if esrs_ref is not None:
+                compliance_results = []
+
+                for _, row in esrs_ref.iterrows():
+                    metric = row["Metric Name"]
+                    esrs_code = row["ESRS Standard"]
+                    benchmark = row["Benchmark"]
+                    disclosure_type = row["Type"]
+
+                    if metric in company:
+                        value = company[metric]
+                        status = "✅ Compliant"
+                        recommendation = "Maintain performance or document disclosure."
+
+                        try:
+                            if benchmark == "Yes":
+                                if str(value).strip().lower() != "yes":
+                                    status = "❌ Not Compliant"
+                                    recommendation = "Disclose plan to integrate ESG KPIs."
+                            elif "–" in benchmark:
+                                if "2050" in str(value):
+                                    status = "✅ Compliant"
+                                elif "2040" in str(value):
+                                    status = "⚠️ Acceptable"
+                                else:
+                                    status = "❌ Not Compliant"
+                                    recommendation = "Adopt a validated transition plan by 2050."
+                            elif "<" in benchmark:
+                                limit = float(benchmark.replace("<", "").replace(",", ""))
+                                if float(value) >= limit:
+                                    status = "❌ Not Compliant"
+                                    recommendation = f"Value exceeds threshold of {benchmark}."
+                            elif ">" in benchmark:
+                                limit = float(benchmark.replace(">", "").replace(",", ""))
+                                if float(value) <= limit:
+                                    status = "❌ Not Compliant"
+                                    recommendation = f"Target is to exceed {limit}%."
+                        except:
+                            status = "⚠️ Check Format"
+                            recommendation = "Unable to evaluate due to formatting."
+
+                        compliance_results.append([
+                            metric, value, benchmark, esrs_code, disclosure_type, status, recommendation
+                        ])
+
+                compliance_df = pd.DataFrame(compliance_results, columns=[
+                    "Metric", "Company Value", "ESRS Benchmark", "ESRS Ref",
+                    "Disclosure Type", "Compliance Status", "Recommendation"
+                ])
+
+                st.dataframe(compliance_df)
 
         else:
             st.error("❌ The uploaded file is missing one or more required columns.")
@@ -92,103 +180,5 @@ if uploaded_file:
 
     except Exception as e:
         st.error(f"⚠️ An error occurred while reading the file: {e}")
-
 else:
     st.info("Please upload a `.csv` file containing your ESG data.")
-    st.write(f"**{col}**: {user_val} (You) vs {benchmark_val} (Benchmark) → {abs(diff):.2f} {direction}")
-# --- ESG Scoring (CSRD/SFDR-aligned) ---
-st.header("3. ESG Scoring (CSRD/SFDR-Aligned)")
-
-# Environment (50%)
-e_score = (
-    0.4 * normalize_ghg_emissions(company["GHG Emissions (tCO₂e)"]) +
-    0.2 * normalize_renewable_energy(company["Renewable Energy %"]) +
-    0.2 * normalize_water_usage(company["Water Usage (m³)"]) +
-    0.2 * normalize_waste_recycled(company["Waste Recycled %"])
-)
-
-# Social (30%)
-s_score = (
-    0.3 * normalize_biodiversity(company["Biodiversity Risk %"]) +
-    0.3 * normalize_gender_pay_gap(company["Gender Pay Gap %"]) +
-    0.4 * normalize_board_diversity(company["Board Diversity %"])
-)
-
-# Governance (20%)
-g_score = (
-    0.5 * normalize_exec_remuneration(company["ESG KPIs in Exec Pay"]) +
-    0.5 * normalize_transition_plan(company["Transition Plan"])
-)
-
-# Final ESG Score
-esg_score = (0.5 * e_score) + (0.3 * s_score) + (0.2 * g_score)
-
-# Display results
-st.write(f"🌱 Environmental Score: {e_score:.1f}/100")
-st.write(f"🤝 Social Score: {s_score:.1f}/100")
-st.write(f"🏛️ Governance Score: {g_score:.1f}/100")
-st.subheader(f"🎯 **Total ESG Score: {esg_score:.2f}/100**")
-# --- CSRD/ESRS Compliance Mapping ---
-st.header("3. CSRD/ESRS Compliance Mapping")
-
-# Load ESRS reference table
-try:
-    esrs_ref = pd.read_csv("esrs_reference.csv", encoding="utf-8")
-except:
-    st.error("⚠️ Could not load ESRS reference data.")
-    esrs_ref = None
-
-if esrs_ref is not None:
-    compliance_results = []
-
-    for _, row in esrs_ref.iterrows():
-        metric = row["Metric Name"]
-        esrs_code = row["ESRS Standard"]
-        benchmark = row["Benchmark"]
-        disclosure_type = row["Type"]
-
-        if metric in company:
-            value = company[metric]
-            status = "✅ Compliant"
-            recommendation = "Maintain performance or document disclosure."
-
-            try:
-                # Compliance check logic
-                if benchmark == "Yes":
-                    if str(value).strip().lower() != "yes":
-                        status = "❌ Not Compliant"
-                        recommendation = "Disclose plan to integrate ESG KPIs."
-                elif "–" in benchmark:
-                    if "2050" in str(value):
-                        status = "✅ Compliant"
-                    elif "2040" in str(value):
-                        status = "⚠️ Acceptable"
-                    else:
-                        status = "❌ Not Compliant"
-                        recommendation = "Adopt a validated transition plan by 2050."
-                elif "<" in benchmark:
-                    limit = float(benchmark.replace("<", "").replace(",", ""))
-                    if float(value) >= limit:
-                        status = "❌ Not Compliant"
-                        recommendation = f"Value exceeds threshold of {benchmark}."
-                elif ">" in benchmark:
-                    limit = float(benchmark.replace(">", "").replace(",", ""))
-                    if float(value) <= limit:
-                        status = "❌ Not Compliant"
-                        recommendation = f"Target is to exceed {limit}%."
-            except:
-                status = "⚠️ Check Format"
-                recommendation = "Unable to evaluate due to formatting."
-
-            compliance_results.append([
-                metric, value, benchmark, esrs_code, disclosure_type, status, recommendation
-            ])
-
-    compliance_df = pd.DataFrame(compliance_results, columns=[
-        "Metric", "Company Value", "ESRS Benchmark", "ESRS Ref",
-        "Disclosure Type", "Compliance Status", "Recommendation"
-    ])
-
-    st.dataframe(compliance_df)
-
-
