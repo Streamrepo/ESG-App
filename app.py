@@ -128,5 +128,67 @@ st.write(f"🌱 Environmental Score: {e_score:.1f}/100")
 st.write(f"🤝 Social Score: {s_score:.1f}/100")
 st.write(f"🏛️ Governance Score: {g_score:.1f}/100")
 st.subheader(f"🎯 **Total ESG Score: {esg_score:.2f}/100**")
+# --- CSRD/ESRS Compliance Mapping ---
+st.header("3. CSRD/ESRS Compliance Mapping")
+
+# Load ESRS reference table
+try:
+    esrs_ref = pd.read_csv("esrs_reference.csv", encoding="utf-8")
+except:
+    st.error("⚠️ Could not load ESRS reference data.")
+    esrs_ref = None
+
+if esrs_ref is not None:
+    compliance_results = []
+
+    for _, row in esrs_ref.iterrows():
+        metric = row["Metric Name"]
+        esrs_code = row["ESRS Standard"]
+        benchmark = row["Benchmark"]
+        disclosure_type = row["Type"]
+
+        if metric in company:
+            value = company[metric]
+            status = "✅ Compliant"
+            recommendation = "Maintain performance or document disclosure."
+
+            try:
+                # Compliance check logic
+                if benchmark == "Yes":
+                    if str(value).strip().lower() != "yes":
+                        status = "❌ Not Compliant"
+                        recommendation = "Disclose plan to integrate ESG KPIs."
+                elif "–" in benchmark:
+                    if "2050" in str(value):
+                        status = "✅ Compliant"
+                    elif "2040" in str(value):
+                        status = "⚠️ Acceptable"
+                    else:
+                        status = "❌ Not Compliant"
+                        recommendation = "Adopt a validated transition plan by 2050."
+                elif "<" in benchmark:
+                    limit = float(benchmark.replace("<", "").replace(",", ""))
+                    if float(value) >= limit:
+                        status = "❌ Not Compliant"
+                        recommendation = f"Value exceeds threshold of {benchmark}."
+                elif ">" in benchmark:
+                    limit = float(benchmark.replace(">", "").replace(",", ""))
+                    if float(value) <= limit:
+                        status = "❌ Not Compliant"
+                        recommendation = f"Target is to exceed {limit}%."
+            except:
+                status = "⚠️ Check Format"
+                recommendation = "Unable to evaluate due to formatting."
+
+            compliance_results.append([
+                metric, value, benchmark, esrs_code, disclosure_type, status, recommendation
+            ])
+
+    compliance_df = pd.DataFrame(compliance_results, columns=[
+        "Metric", "Company Value", "ESRS Benchmark", "ESRS Ref",
+        "Disclosure Type", "Compliance Status", "Recommendation"
+    ])
+
+    st.dataframe(compliance_df)
 
 
