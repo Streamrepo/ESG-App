@@ -184,3 +184,13 @@ if uploaded_file:
         st.error(f"⚠️ An error occurred while reading the file: {e}")
 else:
     st.info("Please upload a `.csv` file containing your ESG data.")
+# --- REPORT GENERATION SECTION ---
+st.header("4. 📄 Download ESG Report")
+
+from generate_report import generate_esg_report
+
+if st.button("📄 Generate ESG Report with Graph"):
+    report_path = generate_esg_report(company, esg_score, e_score, s_score, g_score, compliance_df)
+    
+    with open(report_path, "rb") as f:
+        st.download_button("📥 Download ESG Report", f, file_name="esg_report.html")
