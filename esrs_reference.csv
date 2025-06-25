@@ -1,0 +1,10 @@
+Metric Name,ESRS Standard,Type,Benchmark,Materiality
+GHG Emissions (tCO₂e),ESRS E1-6,Metric,<1000000,Both
+Renewable Energy %,ESRS E1-4,Target,100,Impact
+Water Usage (m³),ESRS E3-6,Metric,<100000,Impact
+Waste Recycled %,ESRS E5-6,Metric,80,Circularity
+Biodiversity Risk %,ESRS E4-5,Metric,<1,Biodiversity
+Gender Pay Gap %,ESRS S1-13,Metric,<3,Social
+Board Diversity %,ESRS G1-1,Metric,40,Governance
+ESG KPIs in Exec Pay,ESRS G1-2,Metric,Yes,Governance
+Transition Plan,ESRS E1-2,Target,2030�2050,Climate
