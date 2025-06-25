@@ -1,5 +1,36 @@
 import streamlit as st
 import pandas as pd
+# --- Normalization Functions ---
+
+def scale(value, high, low):
+    return max(0, min(100, 100 * (high - value) / (high - low)))
+
+def normalize_ghg_emissions(value): return scale(value, high=10_000_000, low=100_000)
+def normalize_renewable_energy(value): return scale(value, low=10, high=100)
+def normalize_water_usage(value): return scale(value, high=1_000_000, low=100_000)
+def normalize_waste_recycled(value): return scale(value, low=10, high=80)
+def normalize_biodiversity(value): return scale(value, high=10, low=1)
+def normalize_gender_pay_gap(value): return scale(value, high=20, low=3)
+def normalize_board_diversity(value): return scale(value, low=10, high=40)
+
+def normalize_taxonomy_alignment(value):
+    if value >= 30: return 100
+    elif value >= 15: return 50
+    elif value < 5: return 0
+    return 25
+
+def normalize_exec_remuneration(value):
+    return 100 if str(value).lower() == "yes" else 0
+
+def normalize_transition_plan(value):
+    scores = {
+        "SBTi 2030": 100, "Net Zero 2030": 100,
+        "SBTi 2040": 80, "Net Zero 2040": 80,
+        "SBTi 2050": 60, "Net Zero 2050": 60,
+        "Carbon Neutral": 40, "None": 0
+    }
+    return scores.get(str(value), 0)
+
 
 st.set_page_config(page_title="ESG Analyser", layout="centered")
 st.title("🌿 ESG Analyser - Upload Your Company Data")
@@ -64,3 +95,38 @@ if uploaded_file:
 
 else:
     st.info("Please upload a `.csv` file containing your ESG data.")
+    st.write(f"**{col}**: {user_val} (You) vs {benchmark_val} (Benchmark) → {abs(diff):.2f} {direction}")
+# --- ESG Scoring (CSRD/SFDR-aligned) ---
+st.header("3. ESG Scoring (CSRD/SFDR-Aligned)")
+
+# Environment (50%)
+e_score = (
+    0.4 * normalize_ghg_emissions(company["GHG Emissions (tCO₂e)"]) +
+    0.2 * normalize_renewable_energy(company["Renewable Energy %"]) +
+    0.2 * normalize_water_usage(company["Water Usage (m³)"]) +
+    0.2 * normalize_waste_recycled(company["Waste Recycled %"])
+)
+
+# Social (30%)
+s_score = (
+    0.3 * normalize_biodiversity(company["Biodiversity Risk %"]) +
+    0.3 * normalize_gender_pay_gap(company["Gender Pay Gap %"]) +
+    0.4 * normalize_board_diversity(company["Board Diversity %"])
+)
+
+# Governance (20%)
+g_score = (
+    0.5 * normalize_exec_remuneration(company["ESG KPIs in Exec Pay"]) +
+    0.5 * normalize_transition_plan(company["Transition Plan"])
+)
+
+# Final ESG Score
+esg_score = (0.5 * e_score) + (0.3 * s_score) + (0.2 * g_score)
+
+# Display results
+st.write(f"🌱 Environmental Score: {e_score:.1f}/100")
+st.write(f"🤝 Social Score: {s_score:.1f}/100")
+st.write(f"🏛️ Governance Score: {g_score:.1f}/100")
+st.subheader(f"🎯 **Total ESG Score: {esg_score:.2f}/100**")
+
+
