@@ -190,11 +190,11 @@ if uploaded_file:
             E_score = 0
             for metric, weight in E_weights.items():
                 if metric == "Transition Plan Score":
-        val = company.get(metric, 0)
-    else:
-        p = company.get(f"{metric} Percentile", 0)
-        val = 100 - p if metric in inverse_metrics else p
-    E_score += val * weight * 0.6
+                    val = company.get(metric, 0)
+                else:
+                    p = company.get(f"{metric} Percentile", 0)
+                    val = 100 - p if metric in inverse_metrics else p
+                E_score += val * weight * 0.6
 
 # Calculate Social Score
 S_score = 0
