@@ -219,14 +219,12 @@ if uploaded_file:
                 st.markdown(f"**Social Score:** {S_score:.2f} / 30")
                 st.markdown(f"**Governance Score:** {G_score:.2f} / 10")
                 st.markdown(f"**🔵 Total ESG Peer Score:** {total_score:.2f} / 100")
-
-else:
+        
+        else:
             st.error("❌ Missing required columns.")
             st.write("Expected columns:", required_columns)
-
     except Exception as e:
         st.error(f"⚠️ Error reading file: {e}")
-
-else:
+    else:
     st.info("Please upload a `.csv` file to begin.")
 
