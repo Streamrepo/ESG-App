@@ -35,7 +35,6 @@ if uploaded_file:
             st.success("✅ File uploaded and company size classified!")
             st.dataframe(df)
 
-            st.info("Next step: Add benchmark comparisons and scoring...")
 
         else:
             st.error("❌ The uploaded file is missing one or more required columns.")
