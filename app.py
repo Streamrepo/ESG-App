@@ -189,28 +189,33 @@ if uploaded_file:
 
             E_score = 0
             for metric, weight in E_weights.items():
-                if "GHG" in metric or "Water" in metric:
-                    val = 100 - company.get(f"{metric} Percentile", 0)
-                elif metric == "Transition Plan Score":
-                    val = company.get(metric, 0)
-                else:
-                    val = company.get(f"{metric} Percentile", 0)
-                E_score += val * weight
+                if metric == "Transition Plan Score":
+        val = company.get(metric, 0)
+    else:
+        p = company.get(f"{metric} Percentile", 0)
+        val = 100 - p if metric in inverse_metrics else p
+    E_score += val * weight * 0.6
 
-            S_score = 0
-            for metric in ["Gender Pay Gap %", "Board Diversity %"]:
-                percentile = company.get(f"{metric} Percentile", 0)
-                S_score += percentile * 0.15
+# Calculate Social Score
+S_score = 0
+for metric in ["Gender Pay Gap %", "Board Diversity %"]:
+    p = company.get(f"{metric} Percentile", 0)
+    val = 100 - p if metric in inverse_metrics else p
+    S_score += val * 0.15 * 0.3
 
-            G_score = 10 if str(company.get("ESG KPI's in Exec Pay", "")).strip().lower() == "yes" else 0
+# Governance Score
+G_score = 10 if str(company.get("ESG KPI's in Exec Pay", "")).strip().lower() == "yes" else 0
 
-            total_score = E_score * 0.6 + S_score * 0.3 + G_score * 0.1
+# Total Score
+total_score = E_score + S_score + G_score
 
-            st.markdown(f"### 🧮 ESG Peer Score Summary")
-            st.markdown(f"**Environmental Score (60%):** {E_score:.2f} / 60")
-            st.markdown(f"**Social Score (30%):** {S_score:.2f} / 30")
-            st.markdown(f"**Governance Score (10%):** {G_score:.2f} / 10")
-            st.markdown(f"**🔵 Total ESG Peer Score:** {total_score:.2f} / 100")
+# Display scores
+st.markdown("### 🧮 ESG Peer Score Summary")
+st.markdown(f"**Environmental Score:** {E_score:.2f} / 60")
+st.markdown(f"**Social Score:** {S_score:.2f} / 30")
+st.markdown(f"**Governance Score:** {G_score:.2f} / 10")
+st.markdown(f"**🔵 Total ESG Peer Score:** {total_score:.2f} / 100")
+
 
         else:
             st.error("❌ Missing required columns.")
