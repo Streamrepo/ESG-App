@@ -8,7 +8,7 @@ def classify_company_size(Revenue, employees):
     if Revenue >= 1_000_000_000 or employees >= 2500:
         return "L"
     elif 250_000_000 <= Revenue < 1_000_000_000 or 500 <= employees < 2500:
-        return "UP"
+        return "UM"
     elif 50_000_000 <= Revenue < 250_000_000 or 100 <= employees < 500:
         return "LM"
     else:
