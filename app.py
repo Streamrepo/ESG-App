@@ -34,11 +34,7 @@ if uploaded_file:
 
             st.success("✅ File uploaded and company size classified!")
             st.dataframe(df)
-            def load_benchmark(metric_name, industry, size):
-    file_name = metric_name.lower().replace(" ", "_").replace("%", "").replace("’", "").replace("'", "")
-    path = f"data/benchmarks/{industry.lower().replace(' ', '_')}/{size}/{file_name}.csv"
-    if os.path.exists(path):
-        return pd.read_csv(path)
+            
     else:
         st.warning(f"⚠️ Benchmark for '{metric_name}' not found at: {path}")
         return None
