@@ -187,30 +187,50 @@ if uploaded_file:
                 "Transition Plan Score": 0.10
             }
 
-            E_score = 0
-            for metric, weight in E_weights.items():
-                if "GHG" in metric or "Water" in metric:
-                    val = 100 - company.get(f"{metric} Percentile", 0)
-                elif metric == "Transition Plan Score":
-                    val = company.get(metric, 0)
-                else:
-                    val = company.get(f"{metric} Percentile", 0)
-                E_score += val * weight
+           # --- Section 4: ESG Peer Score ---
+st.header("4. ESG Peer Score")
 
-            S_score = 0
-            for metric in ["Gender Pay Gap %", "Board Diversity %"]:
-                percentile = company.get(f"{metric} Percentile", 0)
-                S_score += percentile * 0.15
+# Metrics where lower is better
+inverse_metrics = {
+    "GHG Emissions (tCO₂e)",
+    "Water usage (m³)",
+    "Biodiversity Risk %",
+    "Gender Pay Gap %"
+}
 
-            G_score = 10 if str(company.get("ESG KPI's in Exec Pay", "")).strip().lower() == "yes" else 0
+E_weights = {
+    "GHG Emissions (tCO₂e)": 0.10,
+    "Water usage (m³)": 0.10,
+    "Renewable Energy %": 0.10,
+    "Waste Recycled %": 0.10,
+    "Biodiversity Risk %": 0.10,
+    "Transition Plan Score": 0.10
+}
+E_score = 0
+for metric, weight in E_weights.items():
+    if metric == "Transition Plan Score":
+        val = company.get(metric, 0)
+    else:
+        percentile = company.get(f"{metric} Percentile", 0)
+        val = 100 - percentile if metric in inverse_metrics else percentile
+    E_score += val * weight * 0.6  # E is 60%
 
-            total_score = E_score * 0.6 + S_score * 0.3 + G_score * 0.1
+S_score = 0
+for metric in ["Gender Pay Gap %", "Board Diversity %"]:
+    percentile = company.get(f"{metric} Percentile", 0)
+    val = 100 - percentile if metric in inverse_metrics else percentile
+    S_score += val * 0.15 * 0.3  # S is 30%
 
-            st.markdown(f"### 🧮 ESG Peer Score Summary")
-            st.markdown(f"**Environmental Score (60%):** {E_score:.2f} / 60")
-            st.markdown(f"**Social Score (30%):** {S_score:.2f} / 30")
-            st.markdown(f"**Governance Score (10%):** {G_score:.2f} / 10")
-            st.markdown(f"**🔵 Total ESG Peer Score:** {total_score:.2f} / 100")
+G_score = 10 if str(company.get("ESG KPI's in Exec Pay", "")).strip().lower() == "yes" else 0
+
+total_score = E_score + S_score + G_score
+
+st.markdown(f"### 🧮 ESG Peer Score Summary")
+st.markdown(f"**Environmental Score:** {E_score:.2f} / 60")
+st.markdown(f"**Social Score:** {S_score:.2f} / 30")
+st.markdown(f"**Governance Score:** {G_score:.2f} / 10")
+st.markdown(f"**🔵 Total ESG Peer Score:** {total_score:.2f} / 100")
+
 
         else:
             st.error("❌ Missing required columns.")
