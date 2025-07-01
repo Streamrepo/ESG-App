@@ -58,7 +58,7 @@ if uploaded_file:
             size = company["Size"]
             num_employees = company["Number of employees"]
 
-            # --- Benchmark Comparison + Plotting ---
+            # --- Scatterplots for GHG & Water usage ---
             for metric in ["GHG Emissions (tCO₂e)", "Water usage (m³)"]:
                 st.subheader(f"📊 {metric} vs Number of Employees")
                 short_metric = "GHG Emissions" if "GHG" in metric else "Water usage"
@@ -91,62 +91,51 @@ if uploaded_file:
                 st.markdown(f"**Residual:** {residual:.2f}")
                 st.markdown(f"**Standardized Residual:** {standardized_residual:.2f}")
                 st.markdown(f"**Percentile vs Peer Group:** {percentile:.1f}%")
-                
-# --- Percent-based ESG Metrics ---
-beta_metrics = [
-    "Renewable Energy %",
-    "Waste Recycled %",
-    "Biodiversity Risk %",
-    "Gender Pay Gap %",
-    "Board Diversity %"
-]
 
-st.header("2. Beta Distribution Percentile Analysis")
+            # --- Beta Distribution Section ---
+            st.header("2. Beta Distribution Percentile Analysis")
+            beta_metrics = [
+                "Renewable Energy %",
+                "Waste Recycled %",
+                "Biodiversity Risk %",
+                "Gender Pay Gap %",
+                "Board Diversity %"
+            ]
 
-for metric in beta_metrics:
-    st.subheader(f"📈 {metric} Benchmark Distribution")
+            for metric in beta_metrics:
+                st.subheader(f"📈 {metric} Benchmark Distribution")
 
-    # File matching and loading
-    file_name = metric.lower().replace(" ", "_").replace("%", "").replace("’", "").replace("'", "")
-    benchmark_path = f"data/benchmarks/{industry.lower().replace(' ', '_')}/{size}/{file_name}.csv"
+                benchmark_df = load_benchmark(metric, industry, size)
+                if benchmark_df is None or metric not in benchmark_df.columns:
+                    continue
 
-    if not os.path.exists(benchmark_path):
-        st.warning(f"⚠️ Benchmark not found for: {metric}")
-        continue
+                try:
+                    values = benchmark_df[metric].dropna() / 100  # Normalize
+                    mean = values.mean()
+                    var = values.var()
 
-    try:
-        benchmark_df = pd.read_csv(benchmark_path)
-        values = benchmark_df[metric].dropna() / 100  # Normalize to 0–1
+                    # Convert to alpha/beta params
+                    alpha = ((1 - mean) / var - 1 / mean) * mean ** 2
+                    beta_param = alpha * (1 / mean - 1)
 
-        mean = values.mean()
-        var = values.var()
+                    x = np.linspace(0, 1, 500)
+                    y = beta.pdf(x, alpha, beta_param)
 
-        # Convert mean/variance to alpha & beta
-        alpha = ((1 - mean) / var - 1 / mean) * mean ** 2
-        beta_param = alpha * (1 / mean - 1)
+                    sample_val = company[metric] / 100
+                    percentile = beta.cdf(sample_val, alpha, beta_param) * 100
 
-        # Plot beta distribution
-        x = np.linspace(0, 1, 500)
-        y = beta.pdf(x, alpha, beta_param)
+                    fig, ax = plt.subplots(figsize=(8, 3))
+                    ax.plot(x * 100, y, label="Benchmark Distribution")
+                    ax.axvline(sample_val * 100, color="red", linestyle="--", label=f"Your Value: {company[metric]}%")
+                    ax.set_title(f"{metric} Beta Distribution")
+                    ax.set_xlabel("%")
+                    ax.set_ylabel("Density")
+                    ax.legend()
+                    st.pyplot(fig)
 
-        sample_val = company[metric] / 100  # Normalize
-        percentile = beta.cdf(sample_val, alpha, beta_param) * 100
-
-        fig, ax = plt.subplots(figsize=(8, 3))
-        ax.plot(x * 100, y, label="Benchmark Distribution")
-        ax.axvline(sample_val * 100, color="red", linestyle="--", label=f"Your Value: {company[metric]}%")
-        ax.set_title(f"{metric} Beta Distribution")
-        ax.set_xlabel("%")
-        ax.set_ylabel("Density")
-        ax.legend()
-        st.pyplot(fig)
-
-        st.markdown(f"**Percentile vs Peer Group:** {percentile:.1f}%")
-
-    except Exception as e:
-        st.error(f"⚠️ Error processing {metric}: {e}")
-
-
+                    st.markdown(f"**Percentile vs Peer Group:** {percentile:.1f}%")
+                except Exception as e:
+                    st.error(f"⚠️ Error processing {metric}: {e}")
         else:
             st.error("❌ Missing required columns:")
             st.write(required_columns)
