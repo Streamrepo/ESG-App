@@ -4,6 +4,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
+from scipy.stats import beta
 
 st.set_page_config(page_title="ESG Analyzer", layout="centered")
 st.title("EY-ESG Analyzer - Upload Your ESG Data")
@@ -90,6 +91,61 @@ if uploaded_file:
                 st.markdown(f"**Residual:** {residual:.2f}")
                 st.markdown(f"**Standardized Residual:** {standardized_residual:.2f}")
                 st.markdown(f"**Percentile vs Peer Group:** {percentile:.1f}%")
+                
+# --- Percent-based ESG Metrics ---
+beta_metrics = [
+    "Renewable Energy %",
+    "Waste Recycled %",
+    "Biodiversity Risk %",
+    "Gender Pay Gap %",
+    "Board Diversity %"
+]
+
+st.header("2. Beta Distribution Percentile Analysis")
+
+for metric in beta_metrics:
+    st.subheader(f"📈 {metric} Benchmark Distribution")
+
+    # File matching and loading
+    file_name = metric.lower().replace(" ", "_").replace("%", "").replace("’", "").replace("'", "")
+    benchmark_path = f"data/benchmarks/{industry.lower().replace(' ', '_')}/{size}/{file_name}.csv"
+
+    if not os.path.exists(benchmark_path):
+        st.warning(f"⚠️ Benchmark not found for: {metric}")
+        continue
+
+    try:
+        benchmark_df = pd.read_csv(benchmark_path)
+        values = benchmark_df[metric].dropna() / 100  # Normalize to 0–1
+
+        mean = values.mean()
+        var = values.var()
+
+        # Convert mean/variance to alpha & beta
+        alpha = ((1 - mean) / var - 1 / mean) * mean ** 2
+        beta_param = alpha * (1 / mean - 1)
+
+        # Plot beta distribution
+        x = np.linspace(0, 1, 500)
+        y = beta.pdf(x, alpha, beta_param)
+
+        sample_val = company[metric] / 100  # Normalize
+        percentile = beta.cdf(sample_val, alpha, beta_param) * 100
+
+        fig, ax = plt.subplots(figsize=(8, 3))
+        ax.plot(x * 100, y, label="Benchmark Distribution")
+        ax.axvline(sample_val * 100, color="red", linestyle="--", label=f"Your Value: {company[metric]}%")
+        ax.set_title(f"{metric} Beta Distribution")
+        ax.set_xlabel("%")
+        ax.set_ylabel("Density")
+        ax.legend()
+        st.pyplot(fig)
+
+        st.markdown(f"**Percentile vs Peer Group:** {percentile:.1f}%")
+
+    except Exception as e:
+        st.error(f"⚠️ Error processing {metric}: {e}")
+
 
         else:
             st.error("❌ Missing required columns:")
