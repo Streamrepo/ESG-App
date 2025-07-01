@@ -195,26 +195,21 @@ if uploaded_file:
                     p = company.get(f"{metric} Percentile", 0)
                     val = 100 - p if metric in inverse_metrics else p
                 E_score += val * weight * 0.6
-
-# Calculate Social Score
-S_score = 0
-for metric in ["Gender Pay Gap %", "Board Diversity %"]:
-    p = company.get(f"{metric} Percentile", 0)
-    val = 100 - p if metric in inverse_metrics else p
-    S_score += val * 0.15 * 0.3
-
-# Governance Score
-G_score = 10 if str(company.get("ESG KPI's in Exec Pay", "")).strip().lower() == "yes" else 0
-
-# Total Score
-total_score = E_score + S_score + G_score
-
-# Display scores
-st.markdown("### 🧮 ESG Peer Score Summary")
-st.markdown(f"**Environmental Score:** {E_score:.2f} / 60")
-st.markdown(f"**Social Score:** {S_score:.2f} / 30")
-st.markdown(f"**Governance Score:** {G_score:.2f} / 10")
-st.markdown(f"**🔵 Total ESG Peer Score:** {total_score:.2f} / 100")
+            
+            S_score = 0
+            for metric in ["Gender Pay Gap %", "Board Diversity %"]:
+                p = company.get(f"{metric} Percentile", 0)
+                val = 100 - p if metric in inverse_metrics else p
+                S_score += val * 0.15 * 0.3
+                
+            G_score = 10 if str(company.get("ESG KPI's in Exec Pay", "")).strip().lower() == "yes" else 0
+            
+            total_score = E_score + S_score + G_score
+            st.markdown("### 🧮 ESG Peer Score Summary")
+            st.markdown(f"**Environmental Score:** {E_score:.2f} / 60")
+            st.markdown(f"**Social Score:** {S_score:.2f} / 30")
+            st.markdown(f"**Governance Score:** {G_score:.2f} / 10")
+            st.markdown(f"**🔵 Total ESG Peer Score:** {total_score:.2f} / 100")
 
 
         else:
