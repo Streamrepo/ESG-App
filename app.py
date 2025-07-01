@@ -47,7 +47,7 @@ if uploaded_file:
 
         if all(col in df.columns for col in required_columns):
             df["Size"] = df.apply(lambda row: classify_company_size(row["Revenue"], row["Number of employees"]), axis=1)
-            st.success("\u2705 File uploaded and company size classified!")
+            st.success("✅ File uploaded and company size classified!")
             st.dataframe(df)
 
             company = df.iloc[0]
@@ -171,9 +171,9 @@ if uploaded_file:
                 st.markdown(f"**Peer Disclosure Rate:** `{disclosure_rate:.1f}%`")
 
                 if company_compliant:
-                    st.success("\u2705 Your company matches peer best practices.")
+                    st.success("✅ Your company matches peer best practices.")
                 else:
-                    st.error("\u274c Below peer benchmark. Consider improving disclosure.")
+                    st.error("❌ Below peer benchmark. Consider improving disclosure.")
 
             # --- Section 4: ESG Peer Score ---
             st.header("4. ESG Peer Score")
@@ -195,25 +195,25 @@ if uploaded_file:
                     val = company.get(metric, 0)
                 else:
                     val = company.get(f"{metric} Percentile", 0)
-                E_score += val * weight * 0.6
+                E_score += val * weight
 
             S_score = 0
             for metric in ["Gender Pay Gap %", "Board Diversity %"]:
                 percentile = company.get(f"{metric} Percentile", 0)
-                S_score += percentile * 0.15 * 0.3
+                S_score += percentile * 0.15
 
             G_score = 10 if str(company.get("ESG KPI's in Exec Pay", "")).strip().lower() == "yes" else 0
 
-            total_score = E_score + S_score + G_score
+            total_score = E_score * 0.6 + S_score * 0.3 + G_score * 0.1
 
-            st.markdown(f"### \U0001f9ee ESG Peer Score Summary")
-            st.markdown(f"**Environmental Score:** {E_score:.2f} / 60")
-            st.markdown(f"**Social Score:** {S_score:.2f} / 30")
-            st.markdown(f"**Governance Score:** {G_score:.2f} / 10")
-            st.markdown(f"**\U0001f535 Total ESG Peer Score:** {total_score:.2f} / 100")
+            st.markdown(f"### 🧮 ESG Peer Score Summary")
+            st.markdown(f"**Environmental Score (60%):** {E_score:.2f} / 60")
+            st.markdown(f"**Social Score (30%):** {S_score:.2f} / 30")
+            st.markdown(f"**Governance Score (10%):** {G_score:.2f} / 10")
+            st.markdown(f"**🔵 Total ESG Peer Score:** {total_score:.2f} / 100")
 
         else:
-            st.error("\u274c Missing required columns.")
+            st.error("❌ Missing required columns.")
             st.write("Expected columns:", required_columns)
 
     except Exception as e:
