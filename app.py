@@ -27,7 +27,7 @@ def load_benchmark(metric_name, industry, size):
     if os.path.exists(path):
         return pd.read_csv(path)
     else:
-        st.warning(f"\u26a0\ufe0f Benchmark for '{metric_name}' not found at: {path}")
+        st.warning(f"⚠️ Benchmark for '{metric_name}' not found at: {path}")
         return None
 
 # --- Upload Section ---
@@ -73,6 +73,7 @@ if uploaded_file:
                 residual_std = np.std(y - (slope * X + intercept))
                 standardized_residual = residual / residual_std
                 percentile = stats.norm.cdf(standardized_residual) * 100
+                company[f"{metric} Percentile"] = percentile
 
                 fig, ax = plt.subplots()
                 ax.scatter(X, y, label="Benchmark data", alpha=0.6)
@@ -88,86 +89,135 @@ if uploaded_file:
                 st.markdown(f"**Standardized Residual:** {standardized_residual:.2f}")
                 st.markdown(f"**Percentile vs Peer Group:** {percentile:.1f}%")
 
+            # --- Section 2: Beta Distribution ---
+            st.header("2. Beta Distribution Percentile Analysis")
+
+            beta_metrics = [
+                "Renewable Energy %", "Waste Recycled %", "Biodiversity Risk %",
+                "Gender Pay Gap %", "Board Diversity %"
+            ]
+
+            for metric in beta_metrics:
+                st.subheader(f"📈 {metric} Benchmark Distribution")
+                benchmark_df = load_benchmark(metric, industry, size)
+                if benchmark_df is None or metric not in benchmark_df.columns:
+                    continue
+
+                try:
+                    values = benchmark_df[metric].dropna() / 100
+                    mean = values.mean()
+                    var = values.var()
+
+                    alpha = ((1 - mean) / var - 1 / mean) * mean ** 2
+                    beta_param = alpha * (1 / mean - 1)
+
+                    x = np.linspace(0, 1, 500)
+                    y = beta.pdf(x, alpha, beta_param)
+
+                    sample_val = company[metric] / 100
+                    percentile = beta.cdf(sample_val, alpha, beta_param) * 100
+                    company[f"{metric} Percentile"] = percentile
+
+                    fig, ax = plt.subplots(figsize=(8, 3))
+                    ax.plot(x * 100, y, label="Benchmark Distribution")
+                    ax.axvline(sample_val * 100, color="red", linestyle="--", label=f"Your Value: {company[metric]}%")
+                    ax.set_title(f"{metric} Beta Distribution")
+                    ax.set_xlabel("%")
+                    ax.set_ylabel("Density")
+                    ax.legend()
+                    st.pyplot(fig)
+
+                    st.markdown(f"**Percentile vs Peer Group:** {percentile:.1f}%")
+
+                except Exception as e:
+                    st.error(f"⚠️ Error processing {metric}: {e}")
+
+            # --- Section 3: Disclosure Benchmarks ---
+            st.header("3. Disclosure Benchmarks: ESG KPIs & Transition Plan")
+
+            qualitative_metrics = ["ESG KPI's in Exec Pay", "Transition Plan"]
+
+            transition_score = 0
+            for metric in qualitative_metrics:
+                st.subheader(f"📋 {metric} Peer Disclosure")
+
+                benchmark_df = load_benchmark(metric, industry, size)
+                if benchmark_df is None or metric not in benchmark_df.columns:
+                    st.warning(f"⚠️ Benchmark not found or missing column: {metric}")
+                    continue
+
+                benchmark_vals = benchmark_df[metric].dropna().astype(str).str.strip()
+                company_val = str(company[metric]).strip()
+
+                if metric == "ESG KPI's in Exec Pay":
+                    disclosure_rate = (benchmark_vals.str.lower() == "yes").mean() * 100
+                    company_compliant = company_val.lower() == "yes"
+                else:
+                    preferred = {
+                        "SBTi 2030": 100,
+                        "Net Zero 2030": 100,
+                        "SBTi 2040": 80,
+                        "Net Zero 2040": 80,
+                        "SBTi 2050": 60,
+                        "Net Zero 2050": 60,
+                        "Carbon Neutral": 40
+                    }
+                    disclosure_rate = benchmark_vals.isin(preferred.keys()).mean() * 100
+                    transition_score = preferred.get(company_val, 0)
+                    company["Transition Plan Score"] = transition_score
+                    company_compliant = company_val in preferred
+
+                st.markdown(f"**Your Value:** `{company_val}`")
+                st.markdown(f"**Peer Disclosure Rate:** `{disclosure_rate:.1f}%`")
+
+                if company_compliant:
+                    st.success("\u2705 Your company matches peer best practices.")
+                else:
+                    st.error("\u274c Below peer benchmark. Consider improving disclosure.")
+
+            # --- Section 4: ESG Peer Score ---
+            st.header("4. ESG Peer Score")
+
+            E_weights = {
+                "GHG Emissions (tCO₂e)": 0.10,
+                "Water usage (m³)": 0.10,
+                "Renewable Energy %": 0.10,
+                "Waste Recycled %": 0.10,
+                "Biodiversity Risk %": 0.10,
+                "Transition Plan Score": 0.10
+            }
+
+            E_score = 0
+            for metric, weight in E_weights.items():
+                if "GHG" in metric or "Water" in metric:
+                    val = 100 - company.get(f"{metric} Percentile", 0)
+                elif metric == "Transition Plan Score":
+                    val = company.get(metric, 0)
+                else:
+                    val = company.get(f"{metric} Percentile", 0)
+                E_score += val * weight * 0.6
+
+            S_score = 0
+            for metric in ["Gender Pay Gap %", "Board Diversity %"]:
+                percentile = company.get(f"{metric} Percentile", 0)
+                S_score += percentile * 0.15 * 0.3
+
+            G_score = 10 if str(company.get("ESG KPI's in Exec Pay", "")).strip().lower() == "yes" else 0
+
+            total_score = E_score + S_score + G_score
+
+            st.markdown(f"### \U0001f9ee ESG Peer Score Summary")
+            st.markdown(f"**Environmental Score:** {E_score:.2f} / 60")
+            st.markdown(f"**Social Score:** {S_score:.2f} / 30")
+            st.markdown(f"**Governance Score:** {G_score:.2f} / 10")
+            st.markdown(f"**\U0001f535 Total ESG Peer Score:** {total_score:.2f} / 100")
+
         else:
             st.error("\u274c Missing required columns.")
             st.write("Expected columns:", required_columns)
 
     except Exception as e:
-        st.error(f"\u26a0\ufe0f Error reading file: {e}")
-
-    # --- Section 2: Beta Distribution ---
-    st.header("2. Beta Distribution Percentile Analysis")
-
-    beta_metrics = [
-        "Renewable Energy %", "Waste Recycled %", "Biodiversity Risk %",
-        "Gender Pay Gap %", "Board Diversity %"
-    ]
-
-    for metric in beta_metrics:
-        st.subheader(f"📈 {metric} Benchmark Distribution")
-        benchmark_df = load_benchmark(metric, industry, size)
-        if benchmark_df is None or metric not in benchmark_df.columns:
-            continue
-
-        try:
-            values = benchmark_df[metric].dropna() / 100
-            mean = values.mean()
-            var = values.var()
-
-            alpha = ((1 - mean) / var - 1 / mean) * mean ** 2
-            beta_param = alpha * (1 / mean - 1)
-
-            x = np.linspace(0, 1, 500)
-            y = beta.pdf(x, alpha, beta_param)
-
-            sample_val = company[metric] / 100
-            percentile = beta.cdf(sample_val, alpha, beta_param) * 100
-
-            fig, ax = plt.subplots(figsize=(8, 3))
-            ax.plot(x * 100, y, label="Benchmark Distribution")
-            ax.axvline(sample_val * 100, color="red", linestyle="--", label=f"Your Value: {company[metric]}%")
-            ax.set_title(f"{metric} Beta Distribution")
-            ax.set_xlabel("%")
-            ax.set_ylabel("Density")
-            ax.legend()
-            st.pyplot(fig)
-
-            st.markdown(f"**Percentile vs Peer Group:** {percentile:.1f}%")
-
-        except Exception as e:
-            st.error(f"\u26a0\ufe0f Error processing {metric}: {e}")
-
-    # --- Section 3: Disclosure Benchmarks ---
-    st.header("3. Disclosure Benchmarks: ESG KPIs & Transition Plan")
-
-    qualitative_metrics = ["ESG KPI's in Exec Pay", "Transition Plan"]
-
-    for metric in qualitative_metrics:
-        st.subheader(f"📋 {metric} Peer Disclosure")
-
-        benchmark_df = load_benchmark(metric, industry, size)
-        if benchmark_df is None or metric not in benchmark_df.columns:
-            st.warning(f"\u26a0\ufe0f Benchmark not found or missing column: {metric}")
-            continue
-
-        benchmark_vals = benchmark_df[metric].dropna().astype(str).str.strip()
-        company_val = str(company[metric]).strip()
-
-        if metric == "ESG KPI's in Exec Pay":
-            disclosure_rate = (benchmark_vals.str.lower() == "yes").mean() * 100
-            company_compliant = company_val.lower() == "yes"
-        else:
-            preferred = ["SBTi 2030", "Net Zero 2030", "SBTi 2040", "Net Zero 2040"]
-            disclosure_rate = benchmark_vals.isin(preferred).mean() * 100
-            company_compliant = company_val in preferred
-
-        st.markdown(f"**Your Value:** `{company_val}`")
-        st.markdown(f"**Peer Disclosure Rate:** `{disclosure_rate:.1f}%`")
-
-        if company_compliant:
-            st.success("\u2705 Your company matches peer best practices.")
-        else:
-            st.error("\u274c Below peer benchmark. Consider improving disclosure.")
+        st.error(f"⚠️ Error reading file: {e}")
 
 else:
     st.info("Please upload a `.csv` file to begin.")
