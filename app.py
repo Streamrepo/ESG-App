@@ -226,5 +226,5 @@ if uploaded_file:
     except Exception as e:
         st.error(f"⚠️ Error reading file: {e}")
     else:
-    st.info("Please upload a `.csv` file to begin.")
+        st.info("Please upload a `.csv` file to begin.")
 
