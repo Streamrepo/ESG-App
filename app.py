@@ -91,6 +91,13 @@ if uploaded_file:
                 st.markdown(f"**Residual:** {residual:.2f}")
                 st.markdown(f"**Standardized Residual:** {standardized_residual:.2f}")
                 st.markdown(f"**Percentile vs Peer Group:** {percentile:.1f}%")
+                        else:
+            st.error("❌ Missing required columns.")
+            st.write("Expected columns:", required_columns)
+
+    except Exception as e:
+        st.error(f"⚠️ Error reading file: {e}")
+
                 # --- Section 2: Beta Distribution Percentile Analysis ---
 st.header("2. Beta Distribution Percentile Analysis")
 
