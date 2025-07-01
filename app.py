@@ -134,8 +134,47 @@ if uploaded_file:
                     st.pyplot(fig)
 
                     st.markdown(f"**Percentile vs Peer Group:** {percentile:.1f}%")
-                except Exception as e:
-                    st.error(f"⚠️ Error processing {metric}: {e}")
+
+                    # --- Qualitative Benchmarks: ESG KPIs & Transition Plan ---
+st.header("3. Disclosure Benchmarks: ESG KPIs & Transition Plan")
+
+qualitative_metrics = [
+    "ESG KPI's in Exec Pay",
+    "Transition Plan"
+]
+
+for metric in qualitative_metrics:
+    st.subheader(f"📋 {metric} Peer Disclosure")
+    
+    # Load the benchmark file
+    benchmark_df = load_benchmark(metric, industry, size)
+    
+    if benchmark_df is None or metric not in benchmark_df.columns:
+        st.warning(f"⚠️ Benchmark not found or missing column: {metric}")
+        continue
+
+    # Clean data
+    benchmark_vals = benchmark_df[metric].dropna().astype(str).str.strip()
+    company_val = str(company[metric]).strip()
+
+    # Calculate disclosure rate for "Yes" or best practice
+    if metric == "ESG KPI's in Exec Pay":
+        disclosure_rate = (benchmark_vals == "Yes").mean() * 100
+        company_compliant = (company_val.lower() == "yes")
+    else:  # Transition Plan
+        preferred = ["SBTi 2030", "Net Zero 2030", "SBTi 2040", "Net Zero 2040"]
+        disclosure_rate = benchmark_vals.isin(preferred).mean() * 100
+        company_compliant = (company_val in preferred)
+
+    # Show result
+    st.markdown(f"**Your Value:** `{company_val}`")
+    st.markdown(f"**Peer Disclosure Rate:** `{disclosure_rate:.1f}%`")
+    
+    if company_compliant:
+        st.success("✅ Your company matches peer best practices.")
+    else:
+        st.error("❌ Below peer benchmark. Consider improving disclosure.")
+
         else:
             st.error("❌ Missing required columns:")
             st.write(required_columns)
