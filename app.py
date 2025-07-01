@@ -177,6 +177,15 @@ if uploaded_file:
 
             # --- Section 4: ESG Peer Score ---
             st.header("4. ESG Peer Score")
+            
+            
+            inverse_metrics = {
+    "GHG Emissions (tCO₂e)",
+    "Water usage (m³)",
+    "Biodiversity Risk %",
+    "Gender Pay Gap %"
+}
+
 
             E_weights = {
                 "GHG Emissions (tCO₂e)": 0.10,
