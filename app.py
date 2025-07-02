@@ -49,8 +49,10 @@ if uploaded_file:
             df["Size"] = df.apply(lambda row: classify_company_size(row["Revenue"], row["Number of employees"]), axis=1)
             st.success("✅ File uploaded and company size classified!")
             st.dataframe(df)
+            selected_company = st.selectbox("Select a company to analyze:",df["Company"].unique())
 
-            company = df.iloc[0]
+            company = df[df["Company"] ==
+            selected_company].iloc[0]
             industry = company["Industry"]
             size = company["Size"]
             num_employees = company["Number of employees"]
