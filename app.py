@@ -7,7 +7,7 @@ from scipy import stats
 from scipy.stats import beta
 
 st.set_page_config(page_title="ESG Analyzer", layout="wide")
-st.title("EY-ESG Analyzer - Upload Your ESG Data", layout ="centered")
+st.title("EY-ESG Analyzer - Upload Your ESG Data")
 
 # --- Company Size Classification ---
 def classify_company_size(Revenue, employees):
