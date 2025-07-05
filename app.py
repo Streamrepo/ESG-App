@@ -177,9 +177,9 @@ if uploaded_file:
                 else:
                     st.error("❌ Below peer benchmark. Consider improving disclosure.")
                 
-                st.header("4. ESG Peer Score")
+            st.header("4. ESG Peer Score")
                 
-                E_metrics = {
+            E_metrics = {
                     "GHG Emissions (tCO₂e)": True,
                     "Water usage (m³)": True,
                     "Renewable Energy %": False,
@@ -188,39 +188,39 @@ if uploaded_file:
                     "Transition Plan Score": None  # already scaled 0–100
                 }
                 
-                S_metrics = {
+            S_metrics = {
                     "Gender Pay Gap %": True,
                     "Board Diversity %": False
                 }
-                E_raw = 0
-                E_count = 0
-                for metric, is_inverse in E_metrics.items():
-                    if metric == "Transition Plan Score":
-                        val = company.get(metric, 0)
-                    else:
-                        p = company.get(f"{metric} Percentile", 0)
-                        val = 100 - p if is_inverse else p
-                        E_count += 1
-                        E_raw += val
-                        
-                E_score = E_raw * (60 / (E_count * 100 + 100))  # Normalize to 60
-                
-                S_raw = 0
-                for metric, is_inverse in S_metrics.items():
+            E_raw = 0
+            E_count = 0
+            for metric, is_inverse in E_metrics.items():
+                if metric == "Transition Plan Score":
+                    val = company.get(metric, 0)
+                else:
                     p = company.get(f"{metric} Percentile", 0)
                     val = 100 - p if is_inverse else p
-                    S_raw += val
+                    E_count += 1
+                    E_raw += val
+                        
+            E_score = E_raw * (60 / (E_count * 100 + 100))  # Normalize to 60
+                
+            S_raw = 0
+            for metric, is_inverse in S_metrics.items():
+                p = company.get(f"{metric} Percentile", 0)
+                val = 100 - p if is_inverse else p
+                S_raw += val
                     
-                S_score = S_raw * (30 / (len(S_metrics) * 100))  # Normalize to 30
+            S_score = S_raw * (30 / (len(S_metrics) * 100))  # Normalize to 30
                 
-                G_score = 10 if str(company.get("ESG KPI's in Exec Pay", "")).strip().lower() == "yes" else 0
-                total_score = E_score + S_score + G_score
+            G_score = 10 if str(company.get("ESG KPI's in Exec Pay", "")).strip().lower() == "yes" else 0
+            total_score = E_score + S_score + G_score
                 
-                st.markdown("### 🧮 ESG Peer Score Summary")
-                st.markdown(f"**Environmental Score:** {E_score:.2f} / 60")
-                st.markdown(f"**Social Score:** {S_score:.2f} / 30")
-                st.markdown(f"**Governance Score:** {G_score:.2f} / 10")
-                st.markdown(f"**🔵 Total ESG Peer Score:** {total_score:.2f} / 100")
+            st.markdown("### 🧮 ESG Peer Score Summary")
+            st.markdown(f"**Environmental Score:** {E_score:.2f} / 60")
+            st.markdown(f"**Social Score:** {S_score:.2f} / 30")
+            st.markdown(f"**Governance Score:** {G_score:.2f} / 10")
+            st.markdown(f"**🔵 Total ESG Peer Score:** {total_score:.2f} / 100")
         
         else:
             st.error("❌ Missing required columns.")
