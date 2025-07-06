@@ -1,18 +1,30 @@
 import streamlit as st
 import pandas as pd
+import os
+from compliance.validator import load_schema, validate_csv_against_schema
 
-st.title("ESG Compliance Checker")
+st.title("🔍 ESG Compliance Checker")
 
-# --- File Upload ---
-uploaded_file = st.file_uploader("Upload your ESG CSV file", type=["csv"])
+# Upload CSV
+uploaded_file = st.file_uploader("Upload your ESG disclosure file (.csv)", type=["csv"])
 
 if uploaded_file:
-    # Read uploaded CSV into DataFrame
-    df_input = pd.read_csv(uploaded_file)
-    st.subheader("📥 Uploaded Data")
-    st.dataframe(df_input)
+    df = pd.read_csv(uploaded_file)
+    st.subheader("📄 Uploaded Data")
+    st.dataframe(df)
 
-    # Optional: Convert to dictionary for later logic
-    input_dict = dict(zip(df_input['field_id'], df_input['value']))
-    st.write("Parsed Input Dictionary:")
-    st.json(input_dict)
+    # Load JSON Schema
+    schema_path = os.path.join("compliance", "sustainable_finance_schema.json")
+    schema = load_schema(schema_path)
+
+    # Validate against schema
+    validation_results = validate_csv_against_schema(df, schema)
+
+    st.subheader("✅ Schema Validation Results")
+    for result in validation_results:
+        if result["valid"]:
+            st.success(f"Row {result['row']}: Valid")
+        else:
+            st.error(f"Row {result['row']} - Errors:")
+            for err in result["errors"]:
+                st.write(f"• {err}")
