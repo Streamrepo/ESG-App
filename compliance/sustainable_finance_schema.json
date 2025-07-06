@@ -1,0 +1,124 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Sustainable Finance Compliance Data",
+    "type": "object",
+    "properties": {
+        "Company_Name": {
+            "type": "string"
+        },
+        "ISIN": {
+            "type": "string",
+            "pattern": "^XS[0-9]{9}$",
+            "description": "International Securities Identification Number"
+        },
+        "Product_Type": {
+            "type": "string",
+            "enum": [
+                "Article 6",
+                "Article 8",
+                "Article 9"
+            ]
+        },
+        "Sustainability_Risk_Integrated": {
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "Principal_Adverse_Impacts_Disclosed": {
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "Do_No_Significant_Harm_Statement": {
+            "type": "string"
+        },
+        "GHG_Emissions_Scope_1": {
+            "type": "number"
+        },
+        "GHG_Emissions_Scope_2": {
+            "type": "number"
+        },
+        "GHG_Emissions_Scope_3": {
+            "type": "number"
+        },
+        "Green_Taxonomy_Alignment (%)": {
+            "type": "string",
+            "pattern": "^[0-9]+%$"
+        },
+        "Revenue_Taxonomy_Aligned (%)": {
+            "type": "string",
+            "pattern": "^[0-9]+%$"
+        },
+        "CapEx_Taxonomy_Aligned (%)": {
+            "type": "string",
+            "pattern": "^[0-9]+%$"
+        },
+        "OpEx_Taxonomy_Aligned (%)": {
+            "type": "string",
+            "pattern": "^[0-9]+%$"
+        },
+        "Fossil_Gas_Exposure (%)": {
+            "type": "string",
+            "pattern": "^[0-9]+%$"
+        },
+        "Nuclear_Exposure (%)": {
+            "type": "string",
+            "pattern": "^[0-9]+%$"
+        },
+        "Sustainable_Investment_Objective": {
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "Biodiversity_Impact (%)": {
+            "type": "string",
+            "pattern": "^[0-9.]+%$"
+        },
+        "Climate_Targets_Declared": {
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "Board_Climate_Oversight": {
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        },
+        "Sector_NACE_Code": {
+            "type": "string"
+        },
+        "Employee_Wellbeing_Program": {
+            "type": "string",
+            "enum": [
+                "Yes",
+                "No"
+            ]
+        }
+    },
+    "required": [
+        "Company_Name",
+        "ISIN",
+        "Product_Type",
+        "Sustainability_Risk_Integrated",
+        "Principal_Adverse_Impacts_Disclosed",
+        "GHG_Emissions_Scope_1",
+        "GHG_Emissions_Scope_2",
+        "Green_Taxonomy_Alignment (%)",
+        "Revenue_Taxonomy_Aligned (%)",
+        "CapEx_Taxonomy_Aligned (%)",
+        "OpEx_Taxonomy_Aligned (%)",
+        "Climate_Targets_Declared",
+        "Board_Climate_Oversight",
+        "Sector_NACE_Code"
+    ]
+}
