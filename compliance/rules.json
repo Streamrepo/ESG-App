@@ -1,0 +1,30 @@
+{
+    "GHG_Scope1_Emissions": {
+        "type": "numeric",
+        "required": true,
+        "esrs": "ESRS E1-6",
+        "min": 0
+    },
+    "GHG_Scope2_Emissions": {
+        "type": "numeric",
+        "required": true,
+        "esrs": "ESRS E1-6",
+        "min": 0
+    },
+    "GHG_Scope3_Emissions": {
+        "type": "numeric",
+        "required": true,
+        "esrs": "ESRS E1-6"
+    },
+    "Transition_Plan_Exists": {
+        "type": "boolean",
+        "required": true,
+        "esrs": "ESRS E1-1"
+    },
+    "Energy_Consumption_Total": {
+        "type": "numeric",
+        "required": true,
+        "esrs": "ESRS E1-5",
+        "min": 0
+    }
+}
