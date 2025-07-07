@@ -1,1 +1,99 @@
+[
+  {
+    "Metric_Name": "GHG_Scope1_Emissions",
+    "ESRS_Reference": "ESRS E1-6",
+    "Expected_Type": "numeric",
+    "Requirement": "Must disclose annual Scope 1 GHG emissions (tCO2e)",
+    "Threshold": null,
+    "Error_Message": "Missing or invalid Scope 1 emissions"
+  },
+  {
+    "Metric_Name": "GHG_Scope2_Emissions",
+    "ESRS_Reference": "ESRS E1-6",
+    "Expected_Type": "numeric",
+    "Requirement": "Must disclose Scope 2 GHG emissions (location or market-based)",
+    "Threshold": null,
+    "Error_Message": "Missing or invalid Scope 2 emissions"
+  },
+  {
+    "Metric_Name": "GHG_Scope3_Emissions",
+    "ESRS_Reference": "ESRS E1-6",
+    "Expected_Type": "numeric",
+    "Requirement": "Must disclose Scope 3 GHG emissions where material",
+    "Threshold": null,
+    "Error_Message": "Missing or invalid Scope 3 emissions – required for value chain"
+  },
+  {
+    "Metric_Name": "Transition_Plan_Exists",
+    "ESRS_Reference": "ESRS E1-1",
+    "Expected_Type": "yes_no",
+    "Requirement": "Must disclose whether a climate transition plan exists",
+    "Threshold": "yes",
+    "Error_Message": "Climate transition plan not disclosed (expected: Yes)"
+  },
+  {
+    "Metric_Name": "Energy_Consumption_Total",
+    "ESRS_Reference": "ESRS E1-5",
+    "Expected_Type": "numeric",
+    "Requirement": "Must disclose total energy consumption (MWh)",
+    "Threshold": null,
+    "Error_Message": "Missing or invalid energy consumption"
+  },
+  {
+    "Metric_Name": "Water_Consumption",
+    "ESRS_Reference": "ESRS E3-5",
+    "Expected_Type": "numeric",
+    "Requirement": "Must disclose total water consumption (m³)",
+    "Threshold": null,
+    "Error_Message": "Missing or invalid water consumption"
+  },
+  {
+    "Metric_Name": "Biodiversity_Area_Impacted",
+    "ESRS_Reference": "ESRS E4-6",
+    "Expected_Type": "numeric",
+    "Requirement": "Must disclose area of ecosystems impacted by operations (ha)",
+    "Threshold": null,
+    "Error_Message": "Missing or invalid biodiversity impact area"
+  },
+  {
+    "Metric_Name": "Employees_Total",
+    "ESRS_Reference": "ESRS S1-6",
+    "Expected_Type": "numeric",
+    "Requirement": "Must disclose number of total employees (FTEs)",
+    "Threshold": null,
+    "Error_Message": "Missing or invalid total employee count"
+  },
+  {
+    "Metric_Name": "Gender_Diversity_Management",
+    "ESRS_Reference": "ESRS S1-18",
+    "Expected_Type": "percentage",
+    "Requirement": "Must disclose % of women in management roles",
+    "Threshold": 30,
+    "Error_Message": "Below 30% female management – ESRS S1-18 concern"
+  },
+  {
+    "Metric_Name": "Incidents_Discrimination",
+    "ESRS_Reference": "ESRS S1-16",
+    "Expected_Type": "numeric",
+    "Requirement": "Must disclose number of reported discrimination incidents",
+    "Threshold": null,
+    "Error_Message": "Missing or invalid incident data"
+  },
+  {
+    "Metric_Name": "Board_Diversity_Female",
+    "ESRS_Reference": "ESRS G1-1",
+    "Expected_Type": "percentage",
+    "Requirement": "Must disclose % of female representation on the board",
+    "Threshold": 30,
+    "Error_Message": "Board diversity below 30% – ESRS G1-1 issue"
+  },
+  {
+    "Metric_Name": "Anti_Corruption_Training",
+    "ESRS_Reference": "ESRS G1-6",
+    "Expected_Type": "yes_no",
+    "Requirement": "Must disclose whether anti-corruption training is conducted",
+    "Threshold": "yes",
+    "Error_Message": "Anti-corruption training not reported (expected: Yes)"
+  }
+]
 
