@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from compliance.validator import load_schema, validate_csv_row
+from compliance.checker import check_compliance
 
 st.title("🔍 ESG Compliance Checker (Single Company Selection)")
 
@@ -24,13 +25,21 @@ if uploaded_file:
     schema_path = os.path.join("compliance", "sustainable_finance_schema.json")
     schema = load_schema(schema_path)
 
-    # Validate selected row
+    # Validate selected row (schema-based)
+    st.subheader(f"📝 Schema Validation for: {selected_company}")
     errors = validate_csv_row(selected_row, schema)
-
-    st.subheader(f"📝 Validation for: {selected_company}")
     if not errors:
         st.success("✅ This company’s data is valid against the schema!")
     else:
         st.error("❌ Validation errors found:")
         for err in errors:
             st.write(f"• {err}")
+
+    # Compliance rule checks (business logic)
+    st.subheader("📋 Regulation-Based Compliance Check")
+    compliance_results = check_compliance(selected_row)
+
+    for item in compliance_results:
+        st.write(f"**{item['field']}** ({item['value']}): {item['status']}")
+        if item['status'] == "❌":
+            st.error(f"{item['message']}  \n📘 Regulation: *{item['reg']}*")
