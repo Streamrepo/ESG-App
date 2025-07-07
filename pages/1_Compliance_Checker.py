@@ -1,45 +1,88 @@
 import streamlit as st
 import pandas as pd
+import json
 import os
-from compliance.validator import load_schema, validate_csv_row
-from compliance.checker import check_compliance
 
-st.title("🔍 ESG Compliance Checker (Single Company Selection)")
+st.set_page_config(page_title="CSRD/ESRS Compliance Checker")
+st.title("✅ CSRD/ESRS Compliance Checker")
 
-# Upload CSV
-uploaded_file = st.file_uploader("Upload your ESG disclosures (.csv)", type=["csv"])
+# --- Load Compliance Rules ---
+rules_path = os.path.join("compliance", "rules.json")
+try:
+    with open(rules_path, "r") as f:
+        rules = json.load(f)
+except FileNotFoundError:
+    st.error("rules.json file not found in /compliance folder.")
+    st.stop()
+
+# --- File Upload ---
+uploaded_file = st.file_uploader("Upload your ESG disclosure CSV", type=["csv"])
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.subheader("📄 Uploaded Data")
     st.dataframe(df)
 
-    # Company Selector Dropdown
-    company_names = df["Company_Name"].tolist()
-    selected_company = st.selectbox("Select a company to validate", company_names)
+    # Select company (assumes a Company_Name column exists)
+    if "Company_Name" not in df.columns:
+        st.error("Missing 'Company_Name' column in CSV.")
+        st.stop()
 
-    # Get the selected company row as dictionary
+    company_names = df["Company_Name"].dropna().unique().tolist()
+    selected_company = st.selectbox("Select a company to check compliance", company_names)
+
     selected_row = df[df["Company_Name"] == selected_company].iloc[0].to_dict()
 
-    # Load schema
-    schema_path = os.path.join("compliance", "sustainable_finance_schema.json")
-    schema = load_schema(schema_path)
+    # --- Compliance Check ---
+    st.subheader(f"📋 Validation Results for: {selected_company}")
+    compliant = []
+    non_compliant = []
 
-    # Validate selected row (schema-based)
-    st.subheader(f"📝 Schema Validation for: {selected_company}")
-    errors = validate_csv_row(selected_row, schema)
-    if not errors:
-        st.success("✅ This company’s data is valid against the schema!")
-    else:
-        st.error("❌ Validation errors found:")
-        for err in errors:
-            st.write(f"• {err}")
+    for metric, rule in rules.items():
+        value = selected_row.get(metric, "")
+        status = "✅"
+        message = "Valid"
 
-    # Compliance rule checks (business logic)
-    st.subheader("📋 Regulation-Based Compliance Check")
-    compliance_results = check_compliance(selected_row)
+        # Presence check
+        if rule.get("required", False) and (pd.isna(value) or value == ""):
+            status = "❌"
+            message = "Missing required value"
 
-    for item in compliance_results:
-        st.write(f"**{item['field']}** ({item['value']}): {item['status']}")
-        if item['status'] == "❌":
-            st.error(f"{item['message']}  \n📘 Regulation: *{item['reg']}*")
+        # Type check
+        elif rule["type"] == "numeric":
+            try:
+                num = float(value)
+                if "min" in rule and num < rule["min"]:
+                    status = "❌"
+                    message = f"Value {num} is below minimum {rule['min']}"
+            except:
+                status = "❌"
+                message = "Expected numeric value"
+
+        elif rule["type"] == "boolean":
+            if str(value).strip().lower() not in ["yes", "no"]:
+                status = "❌"
+                message = "Expected 'Yes' or 'No'"
+
+        result = {
+            "field": metric,
+            "value": value,
+            "status": status,
+            "message": message,
+            "reg": rule.get("esrs", "N/A")
+        }
+
+        if status == "✅":
+            compliant.append(result)
+        else:
+            non_compliant.append(result)
+
+    # --- Show Results ---
+    st.success(f"{len(compliant)} metrics compliant.")
+    st.error(f"{len(non_compliant)} metrics non-compliant.")
+
+    with st.expander("✅ Compliant Metrics"):
+        st.dataframe(pd.DataFrame(compliant))
+
+    with st.expander("❌ Non-Compliant Metrics"):
+        st.dataframe(pd.DataFrame(non_compliant))
