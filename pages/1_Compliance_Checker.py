@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from utils.compliance_checker import check_compliance  # ✅ External compliance logic
+from utils.compliance_checker import check_compliance  # External compliance logic
 
 st.title("CSRD Compliance Checker")
 
@@ -10,7 +10,8 @@ if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
     st.subheader("📊 Compliance Data (Top 10 Required Rows)")
-    df_subset = df.iloc[:10]  # Only rows 0–9 are required
+    df_subset = df.iloc[:10].copy()  # Only rows 0–9 are required
+    df_subset.dropna(how="all", inplace=True)  # Remove empty rows if any
     st.dataframe(df_subset)
 
     # 🔍 Missing value check
@@ -35,8 +36,8 @@ if uploaded_file is not None:
     else:
         st.success("✅ All required disclosures (rows 0–9) have valid responses and evidence.")
 
-    # ✅ Full compliance check (from external logic)
-    df_compliance = check_compliance(df)
+    # ✅ Compliance check (only top 10 rows)
+    df_compliance = check_compliance(df_subset)
 
     # 🚨 Flag non-compliant metrics
     non_compliant = df_compliance[df_compliance["Compliance"] == "❌"]
@@ -55,10 +56,6 @@ if uploaded_file is not None:
     else:
         st.success("✅ All metrics are compliant.")
 
-    # 📋 Full table view
+    # 📋 Show final table
     st.subheader("📋 Full Compliance Table")
     st.dataframe(df_compliance)
-
-    # 📥 Download button
-    csv = df_compliance.to_csv(index=False).encode("utf-8")
-    st.download_button("Download Compliance Results", csv, "compliance_results.csv", "text/csv")
