@@ -11,7 +11,7 @@ from PIL import Image
 st.set_page_config(page_title="ESG Analyzer", layout="wide")
 
 # Load EY logo
-ey_logo = Image.open("assets/ey_Logo.png")  # Adjust path if needed
+ey_logo = Image.open("assets/ey_logo.png")  # Adjust path if needed
 
 # Create horizontal layout
 col1, col2 = st.columns([6, 1])  # Wider left column for title
