@@ -1,53 +1,38 @@
 import streamlit as st
 import pandas as pd
-import json
-import os
 
-st.set_page_config(page_title="CSRD/ESRS Compliance Checker", layout="wide")
-st.title("📋 CSRD/ESRS Compliance Checker")
+st.title("CSRD Compliance Checker")
 
-# Step 1: Upload Client CSV
-st.header("1️⃣ Upload Client Sustainability Data (.csv)")
-uploaded_file = st.file_uploader("Upload your completed CSRD_ESRS_Client_Template.csv", type=["csv"])
+# Upload CSV file only
+uploaded_file = st.file_uploader("Upload CSRD Compliance CSV (no Option/Format column)", type=["csv"])
 
-# Step 2: Load Rule Sets
-@st.cache_data
-def load_json_rules(file_name):
-    try:
-        rules_path = os.path.join("rules", file_name)
-        with open(rules_path, "r") as f:
-            return json.load(f)
-    except Exception as e:
-        st.error(f"⚠️ Could not load {file_name}: {e}")
-        return []
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
 
-presence_rules = load_json_rules("presence_rules.json")
-compliance_rules = load_json_rules("compliance_rules.json")
+    st.subheader("Current Data")
+    st.dataframe(df)
 
-if presence_rules and compliance_rules:
-    st.success(f"✅ {len(presence_rules)} presence rules and {len(compliance_rules)} compliance rules loaded.")
-    if st.checkbox("Show rule sets"):
-        with st.expander("📘 Presence Rules"):
-            st.json(presence_rules)
-        with st.expander("📗 Compliance Rules"):
-            st.json(compliance_rules)
+    # Check for missing values in 'Response Type' column (column D or index 3)
+    missing_mask = df.iloc[:, 3].isna()
+    if missing_mask.any():
+        st.warning("Missing values detected in 'Response Type':")
+        for _, row in df[missing_mask].iterrows():
+            st.text(f"{row['Section']} {row['Disclosure ID']} is missing data")
 
-# Step 3: Parse Uploaded CSV
-if uploaded_file:
-    try:
-        df = pd.read_csv(uploaded_file)
+        st.subheader("Fill Missing 'Response Type' Values")
+        for i in df[missing_mask].index:
+            suggestion = st.text_input(
+                f"Enter value for {df.at[i, 'Section']} {df.at[i, 'Disclosure ID']}:", key=f"input_{i}"
+            )
+            if suggestion:
+                df.at[i, df.columns[3]] = suggestion
 
-        required_columns = ["Metric_Name", "Metric_Value", "Unit", "Date", "ESRS_Reference", "Notes"]
-        missing_cols = [col for col in required_columns if col not in df.columns]
+        # Show updated table
+        st.subheader("Updated Data")
+        st.dataframe(df)
 
-        if missing_cols:
-            st.error(f"❌ Missing required columns: {', '.join(missing_cols)}")
-        else:
-            st.success("✅ File successfully uploaded and parsed!")
-            st.dataframe(df)
-
-            # Placeholder for next steps:
-            st.info("🔧 Ready to apply presence & compliance checks...")
-
-    except Exception as e:
-        st.error(f"⚠️ Error reading CSV: {e}")
+        # Download button for corrected data
+        csv = df.to_csv(index=False).encode("utf-8")
+        st.download_button("Download Updated CSV", csv, "updated_compliance.csv", "text/csv")
+    else:
+        st.success("All 'Response Type' values are filled.")
