@@ -3,14 +3,15 @@ import pandas as pd
 
 st.title("CSRD Compliance Checker")
 
-# Upload CSV
 uploaded_file = st.file_uploader("Upload CSRD Compliance CSV", type=["csv"])
 
-# Initialize session state
+# Session state setup
 if "show_fill_form" not in st.session_state:
     st.session_state.show_fill_form = False
 if "df" not in st.session_state:
     st.session_state.df = None
+if "rerun_triggered" not in st.session_state:
+    st.session_state.rerun_triggered = False
 
 if uploaded_file is not None:
     if st.session_state.df is None:
@@ -22,7 +23,6 @@ if uploaded_file is not None:
     response_col = df.columns[3]
     evidence_col = df.columns[5]
 
-    # Treat empty or whitespace as missing
     def is_missing(val):
         return pd.isna(val) or str(val).strip() == ""
 
@@ -38,7 +38,6 @@ if uploaded_file is not None:
                 unsafe_allow_html=True
             )
 
-        # Toggle form display
         toggle_label = "Close Fill Missing Data" if st.session_state.show_fill_form else "Fill Missing Data"
         if st.button(toggle_label):
             st.session_state.show_fill_form = not st.session_state.show_fill_form
@@ -56,14 +55,19 @@ if uploaded_file is not None:
                     submitted = st.form_submit_button("Save")
 
                     if submitted:
-                        # Always allow any string input
                         df.at[idx, response_col] = response_input
                         df.at[idx, evidence_col] = evidence_input
-                        st.success(f"✅ Updated: {section} {disc_id}")
-                        st.experimental_rerun()  # Refresh for immediate UI update
+                        st.session_state.rerun_triggered = True
+                        st.success(f"✅ Saved: {section} {disc_id}")
+
     else:
         st.success("✅ All mandatory fields (rows 0–9) have been filled!")
 
-    # Single updated table
+    # Live table
     st.subheader("📊 Compliance Table (Live)")
     st.dataframe(df.iloc[:10])
+
+    # Safely rerun after all forms have rendered
+    if st.session_state.rerun_triggered:
+        st.session_state.rerun_triggered = False
+        st.experimental_rerun()
