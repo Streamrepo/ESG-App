@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 from utils.compliance_checker import check_compliance
+from utils.csrd_summary_generator import generate_csrd_summary
 
 st.title("CSRD Compliance Checker")
 
@@ -38,12 +40,11 @@ if uploaded_file is not None:
     else:
         st.success("✅ All required disclosures (rows 0–9) have valid responses and evidence.")
 
-    # ✅ Apply compliance logic to only clean, top 10 rows
+    # ✅ Compliance check (only top 10)
     df_compliance = check_compliance(df_subset)
 
     # 🚨 Show non-compliant rows with notes
     non_compliant = df_compliance[df_compliance["Compliance"] == "❌"]
-
     if not non_compliant.empty:
         st.markdown("### 🚨 Non-Compliant Metrics")
         for _, row in non_compliant.iterrows():
@@ -58,6 +59,27 @@ if uploaded_file is not None:
     else:
         st.success("✅ All metrics are compliant.")
 
-    # 📋 Final compliance table (only top 10, cleaned)
+    # 📋 Final compliance table
     st.subheader("📋 Full Compliance Table")
     st.dataframe(df_compliance)
+
+    # 📝 Summary paragraph + chart side by side
+    st.subheader("📘 Compliance Summary")
+    col1, col2 = st.columns([2, 1])
+
+    with col1:
+        summary = generate_csrd_summary(df_subset)
+        st.text_area("Narrative Summary", summary, height=300)
+
+    with col2:
+        compliant_count = (df_compliance["Compliance"] == "✔️").sum()
+        non_compliant_count = (df_compliance["Compliance"] == "❌").sum()
+
+        fig, ax = plt.subplots(figsize=(4, 2))
+        ax.barh(["Compliant", "Non-Compliant"], [compliant_count, non_compliant_count], color=["green", "red"])
+        ax.set_xlim(0, 10)
+        ax.set_xlabel("Count")
+        ax.set_title("Disclosures Compliance")
+        for i, v in enumerate([compliant_count, non_compliant_count]):
+            ax.text(v + 0.2, i, str(v), va='center')
+        st.pyplot(fig)
