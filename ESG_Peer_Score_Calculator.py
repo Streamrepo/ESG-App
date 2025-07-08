@@ -14,13 +14,13 @@ st.set_page_config(page_title="ESG Analyzer", layout="wide")
 ey_logo = Image.open("assets/ey_logo.png")  # Adjust path if needed
 
 # Create horizontal layout
-col1, col2 = st.columns([4, 1])  # Wider left column for title
+col1, col2 = st.columns([3, 1])  # Wider left column for title
 
 with col1:
     st.title("EY-ESG Analyzer - Upload Your ESG Data")
 
 with col2:
-    st.image(ey_logo, width=200)  # Adjust width to fit nicely
+    st.image(ey_logo, width=250)  # Adjust width to fit nicely
 
 
 # --- Company Size Classification ---
