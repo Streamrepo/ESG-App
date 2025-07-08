@@ -3,8 +3,21 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from utils.compliance_checker import check_compliance
 from utils.csrd_summary_generator import generate_csrd_summary
+from PIL import Image
 
-st.title("CSRD Compliance Checker")
+
+# Load EY logo
+ey_logo = Image.open("assets/ey_logo.png")  # Adjust path if needed
+
+# Create horizontal layout
+col1, col2 = st.columns([3, 1])  # Wider left column for title
+
+with col1:
+    st.title("CSRD Compliance Checker")
+
+with col2:
+    st.image(ey_logo, width=250)  # Adjust width to fit nicely
+
 
 uploaded_file = st.file_uploader("Upload CSRD Compliance CSV", type=["csv"])
 
