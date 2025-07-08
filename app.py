@@ -123,8 +123,10 @@ if uploaded_file:
                     company[f"{metric} Percentile"] = percentile
 
                     fig, ax = plt.subplots(figsize=(8, 3))
+                    fig.patch.set_facecolor('#999999')
+                    ax.set_facecolor('#cccccc')
                     ax.plot(x * 100, y, label="Benchmark Distribution")
-                    ax.axvline(sample_val * 100, color="red", linestyle="--", label=f"Your Value: {company[metric]}%")
+                    ax.axvline(sample_val * 100, color="#ffe600", linestyle="--", label=f"Your Value: {company[metric]}%")
                     ax.set_title(f"{metric} Beta Distribution")
                     ax.set_xlabel("%")
                     ax.set_ylabel("Density")
