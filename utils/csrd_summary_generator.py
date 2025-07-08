@@ -84,7 +84,7 @@ def generate_csrd_summary(df):
     compliant_sections = sorted(set(df[df["Disclosure ID"].isin(compliance_map.keys())]["Section"]))
     compliant_highlights = ", ".join(compliant_labels)
 
-    non_compliant_areas = ", ".join([f"**{item['summary_label']}**" for item in non_compliant_items])
+    non_compliant_areas = ", ".join([f"{item['summary_label']}" for item in non_compliant_items])
     recommendations = "review and update missing disclosures, and align with expected ESRS reporting standards."
 
     paragraph = f"""
