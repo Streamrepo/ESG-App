@@ -82,19 +82,26 @@ def generate_csrd_summary(df):
     )
 
     compliant_sections = sorted(set(df[df["Disclosure ID"].isin(compliance_map.keys())]["Section"]))
-    non_compliant_areas = ", ".join([item["summary_label"] for item in non_compliant_items])
-    non_compliant_values = ", ".join([item["reported"] for item in non_compliant_items])
-    expected_values = ", ".join([
-        ", ".join(item["expected"]) if isinstance(item["expected"], list) else item["expected"]
-        for item in non_compliant_items
-    ])
     compliant_highlights = ", ".join(compliant_labels)
+
+    non_compliant_areas = ", ".join([f"**{item['summary_label']}**" for item in non_compliant_items])
+    reported_vals = [item["reported"] for item in non_compliant_items]
+    formatted_reported = set([r if r.lower() != "nan" else "missing data" for r in reported_vals])
+    expected_vals = [
+        ", ".join(e) if isinstance(e, list) else e for e in [item["expected"] for item in non_compliant_items]
+    ]
+    formatted_expected = set(expected_vals)
+
+    reported_str = ", ".join(sorted(formatted_reported))
+    expected_str = ", ".join(sorted(formatted_expected))
+
     recommendations = "review and update missing disclosures, and align with expected ESRS reporting standards."
 
     paragraph = f"""
     Compliance Summary: The company demonstrates {compliance_level} alignment with CSRD and ESRS requirements, achieving {compliant_count} out of {total_checks} compliant disclosures across the core areas of {', '.join(compliant_sections)}.
     Key strengths include {compliant_highlights}, all of which meet disclosure expectations under ESRS.
-    However, the company is non-compliant in {non_compliant_count} disclosure(s), notably in {non_compliant_areas}, where it reported \"{non_compliant_values}\" instead of the expected values ({expected_values}).
+    However, the company is non-compliant in {non_compliant_count} disclosure(s), notably in {non_compliant_areas}. 
+    Reported values include: {reported_str}, where the expected values were {expected_str}.
     To close these compliance gaps, the company should {recommendations}
     Overall, the company is {overall_status} in terms of readiness for CSRD-aligned sustainability reporting.
     """
@@ -105,4 +112,3 @@ def generate_csrd_summary(df):
 # df = pd.read_csv("your_data.csv")
 # summary = generate_csrd_summary(df)
 # st.text_area("Compliance Summary", summary, height=300)
-
