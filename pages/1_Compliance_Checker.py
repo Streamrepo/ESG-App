@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from utils.compliance_checker import check_compliance  # ✅ Add this line
 
 st.title("CSRD Compliance Checker")
 
@@ -10,10 +11,9 @@ if uploaded_file is not None:
 
     st.subheader("📊 Compliance Data (Top 10 Required Rows)")
     df_subset = df.iloc[:10]  # Only rows 0–9 are required
-
     st.dataframe(df_subset)
 
-    # Check for missing values in 'Response Type' (col 3) or 'Evidence Reference' (col 5)
+    # 🔍 Missing value check
     response_col = df.columns[3]
     evidence_col = df.columns[5]
 
@@ -34,3 +34,11 @@ if uploaded_file is not None:
             )
     else:
         st.success("✅ All required disclosures (rows 0–9) have valid responses and evidence.")
+
+    # ✅ Full compliance check (from external logic)
+    df_compliance = check_compliance(df)
+    st.subheader("✅ Compliance Check Results")
+    st.dataframe(df_compliance)
+
+    csv = df_compliance.to_csv(index=False).encode("utf-8")
+    st.download_button("Download Compliance Results", csv, "compliance_results.csv", "text/csv")
