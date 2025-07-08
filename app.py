@@ -78,7 +78,8 @@ if uploaded_file:
                 company[f"{metric} Percentile"] = percentile
 
                 fig, ax = plt.subplots()
-                fig.patch.set_facecolor('#cccccc')
+                fig.patch.set_facecolor('#999999')
+                ax.set_facecolor('#cccccc)
                 ax.scatter(X, y, label="Benchmark data", alpha=0.6)
                 ax.plot(X, slope * X + intercept, color="orange", label="Regression line")
                 ax.scatter([num_employees], [actual], color="red", s=80, label="Your Company", zorder=5)
