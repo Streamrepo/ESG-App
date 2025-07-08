@@ -6,6 +6,10 @@ st.title("CSRD Compliance Checker")
 # Upload CSV file
 uploaded_file = st.file_uploader("Upload CSRD Compliance CSV", type=["csv"])
 
+# Initialize session state for toggling the fill-in form
+if "show_fill_form" not in st.session_state:
+    st.session_state.show_fill_form = False
+
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
 
@@ -25,8 +29,13 @@ if uploaded_file is not None:
                 unsafe_allow_html=True
             )
 
-        # Toggle input form with a button
-        if st.button("Fill Missing Data"):
+        # Toggle button to show/hide the fill-in form
+        toggle_label = "Close Fill Missing Data" if st.session_state.show_fill_form else "Fill Missing Data"
+        if st.button(toggle_label):
+            st.session_state.show_fill_form = not st.session_state.show_fill_form
+
+        # If toggled ON, show the fill-in form
+        if st.session_state.show_fill_form:
             st.markdown("### 📝 Fill in the missing values below:")
             for idx in missing_rows.index:
                 current_section = df.at[idx, 'Section']
@@ -41,7 +50,6 @@ if uploaded_file is not None:
                     key=f"evidence_{idx}"
                 )
 
-                # Update only if user fills the value
                 if new_response:
                     df.at[idx, df.columns[3]] = new_response
                 if new_evidence:
@@ -49,8 +57,8 @@ if uploaded_file is not None:
 
             st.success("Missing data filled in. You can now download the updated file.")
 
-            # Offer download
-            csv_updated = df.to_csv(index=False).encode('utf-8')
+            # Download button for updated CSV
+            csv_updated = df.to_csv(index=False).encode("utf-8")
             st.download_button(
                 label="Download Updated CSV",
                 data=csv_updated,
@@ -59,3 +67,4 @@ if uploaded_file is not None:
             )
     else:
         st.success("✅ All mandatory fields (rows 0–9) have been filled!")
+
