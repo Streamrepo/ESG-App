@@ -5,9 +5,23 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import stats
 from scipy.stats import beta
+from PIL import Image
 
+# ✅ Must come before any Streamlit content
 st.set_page_config(page_title="ESG Analyzer", layout="wide")
-st.title("EY-ESG Analyzer - Upload Your ESG Data")
+
+# Load EY logo
+ey_logo = Image.open("assets/ey_logo.png")  # Adjust path if needed
+
+# Create horizontal layout
+col1, col2 = st.columns([6, 1])  # Wider left column for title
+
+with col1:
+    st.title("EY-ESG Analyzer - Upload Your ESG Data")
+
+with col2:
+    st.image(ey_logo, width=60)  # Adjust width to fit nicely
+
 
 # --- Company Size Classification ---
 def classify_company_size(Revenue, employees):
