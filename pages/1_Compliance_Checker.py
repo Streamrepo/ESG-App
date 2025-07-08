@@ -3,9 +3,10 @@ import pandas as pd
 
 st.title("CSRD Compliance Checker")
 
+# Upload CSV
 uploaded_file = st.file_uploader("Upload CSRD Compliance CSV", type=["csv"])
 
-# Init session state
+# Initialize session state
 if "show_fill_form" not in st.session_state:
     st.session_state.show_fill_form = False
 if "df" not in st.session_state:
@@ -21,7 +22,7 @@ if uploaded_file is not None:
     response_col = df.columns[3]
     evidence_col = df.columns[5]
 
-    # Treat NaN or empty string as missing
+    # Treat empty or whitespace as missing
     def is_missing(val):
         return pd.isna(val) or str(val).strip() == ""
 
@@ -37,7 +38,7 @@ if uploaded_file is not None:
                 unsafe_allow_html=True
             )
 
-        # Toggle form
+        # Toggle form display
         toggle_label = "Close Fill Missing Data" if st.session_state.show_fill_form else "Fill Missing Data"
         if st.button(toggle_label):
             st.session_state.show_fill_form = not st.session_state.show_fill_form
@@ -49,26 +50,20 @@ if uploaded_file is not None:
                 section = df.at[idx, 'Section']
                 disc_id = df.at[idx, 'Disclosure ID']
 
-                with st.form(key=f"form_{idx}", clear_on_submit=True):
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        response_input = st.text_input(
-                            f"Response Type for {section} {disc_id}", key=f"resp_{idx}"
-                        )
-                    with col2:
-                        evidence_input = st.text_input(
-                            f"Evidence Reference for {section} {disc_id}", key=f"evid_{idx}"
-                        )
+                with st.form(key=f"form_row_{idx}", clear_on_submit=True):
+                    response_input = st.text_input(f"Response Type for {section} {disc_id}", key=f"r_{idx}")
+                    evidence_input = st.text_input(f"Evidence Reference for {section} {disc_id}", key=f"e_{idx}")
                     submitted = st.form_submit_button("Save")
+
                     if submitted:
-                        if response_input:
-                            df.at[idx, response_col] = response_input
-                        if evidence_input:
-                            df.at[idx, evidence_col] = evidence_input
-                        st.experimental_rerun()  # Force rerun to refresh missing rows
+                        # Always allow any string input
+                        df.at[idx, response_col] = response_input
+                        df.at[idx, evidence_col] = evidence_input
+                        st.success(f"✅ Updated: {section} {disc_id}")
+                        st.experimental_rerun()  # Refresh for immediate UI update
     else:
         st.success("✅ All mandatory fields (rows 0–9) have been filled!")
 
-    # Show only one live-updating table
+    # Single updated table
     st.subheader("📊 Compliance Table (Live)")
     st.dataframe(df.iloc[:10])
