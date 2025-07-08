@@ -10,8 +10,6 @@ if "show_fill_form" not in st.session_state:
     st.session_state.show_fill_form = False
 if "df" not in st.session_state:
     st.session_state.df = None
-if "rerun_triggered" not in st.session_state:
-    st.session_state.rerun_triggered = False
 
 if uploaded_file is not None:
     if st.session_state.df is None:
@@ -57,17 +55,11 @@ if uploaded_file is not None:
                     if submitted:
                         df.at[idx, response_col] = response_input
                         df.at[idx, evidence_col] = evidence_input
-                        st.session_state.rerun_triggered = True
                         st.success(f"✅ Saved: {section} {disc_id}")
 
     else:
         st.success("✅ All mandatory fields (rows 0–9) have been filled!")
 
-    # Live table
+    # Always show the updated table
     st.subheader("📊 Compliance Table (Live)")
     st.dataframe(df.iloc[:10])
-
-    # Safely rerun after all forms have rendered
-    if st.session_state.rerun_triggered:
-        st.session_state.rerun_triggered = False
-        st.experimental_rerun()
