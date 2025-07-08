@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import uuid
 
 st.title("CSRD Compliance Checker")
 
@@ -10,6 +11,10 @@ if "show_fill_form" not in st.session_state:
     st.session_state.show_fill_form = False
 if "df" not in st.session_state:
     st.session_state.df = None
+
+# Add a unique session ID to differentiate widget keys across runs
+if "uid" not in st.session_state:
+    st.session_state.uid = str(uuid.uuid4())[:8]
 
 if uploaded_file is not None:
     if st.session_state.df is None:
@@ -47,9 +52,17 @@ if uploaded_file is not None:
                 section = df.at[idx, 'Section']
                 disc_id = df.at[idx, 'Disclosure ID']
 
-                with st.form(key=f"form_row_{idx}", clear_on_submit=True):
-                    response_input = st.text_input(f"Response Type for {section} {disc_id}", key=f"r_{idx}")
-                    evidence_input = st.text_input(f"Evidence Reference for {section} {disc_id}", key=f"e_{idx}")
+                unique_key = f"{disc_id}_{idx}_{st.session_state.uid}"
+
+                with st.form(key=f"form_{unique_key}", clear_on_submit=True):
+                    response_input = st.text_input(
+                        f"Response Type for {section} {disc_id}",
+                        key=f"resp_{unique_key}"
+                    )
+                    evidence_input = st.text_input(
+                        f"Evidence Reference for {section} {disc_id}",
+                        key=f"evid_{unique_key}"
+                    )
                     submitted = st.form_submit_button("Save")
 
                     if submitted:
@@ -60,6 +73,6 @@ if uploaded_file is not None:
     else:
         st.success("✅ All mandatory fields (rows 0–9) have been filled!")
 
-    # Always show the updated table
+    # Live updated table
     st.subheader("📊 Compliance Table (Live)")
     st.dataframe(df.iloc[:10])
