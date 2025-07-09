@@ -88,8 +88,8 @@ if uploaded_file is not None:
         compliant_count = (df_compliance["Compliance"] == "✔️").sum()
         non_compliant_count = (df_compliance["Compliance"] == "❌").sum()
 
-        fig, ax = plt.subplots(figsize=(8, 4))
-        ax.barh(["Compliant", "Non-Compliant"], [compliant_count, non_compliant_count], color=["#ffe600", "#ff0000"])
+        fig, ax = plt.subplots(figsize=(4, 2))
+        ax.barh(["Compliant", "Non-Compliant"], [compliant_count, non_compliant_count], color=["green", "red"])
         ax.set_xlim(0, 10)
         ax.set_xlabel("Count")
         ax.set_title("Disclosures Compliance")
