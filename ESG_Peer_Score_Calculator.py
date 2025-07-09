@@ -17,7 +17,7 @@ ey_logo = Image.open("assets/ey_logo.png")  # Adjust path if needed
 col1, col2 = st.columns([3, 1])  # Wider left column for title
 
 with col1:
-    st.title("EY-ESG Analyzer - Upload Your ESG Data")
+    st.title("GREEYN Investment Tracker-Upload Portfolio ESG & Compliance Data CSV")
 
 with col2:
     st.image(ey_logo, width=250)  # Adjust width to fit nicely
