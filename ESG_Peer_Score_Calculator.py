@@ -17,7 +17,7 @@ ey_logo = Image.open("assets/ey_logo.png")  # Adjust path if needed
 col1, col2 = st.columns([3, 1])  # Wider left column for title
 
 with col1:
-    st.title("GREEYN Investment Tracker-Upload Portfolio ESG & Compliance Data CSV")
+    st.title("GREEYN Investment Tracker")
 
 with col2:
     st.image(ey_logo, width=250)  # Adjust width to fit nicely
@@ -45,7 +45,7 @@ def load_benchmark(metric_name, industry, size):
         return None
 
 # --- Upload Section ---
-st.header("1. Upload Company's ESG CSV File")
+st.header("Upload Portfolio ESG & Compliance Data (CSV)")
 uploaded_file = st.file_uploader("Upload your ESG data (.csv)", type=["csv"])
 
 if uploaded_file:
