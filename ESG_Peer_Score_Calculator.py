@@ -50,7 +50,7 @@ if uploaded_file:
             "Company", "Industry", "Number of employees", "GHG Emissions (tCO₂e)",
             "Renewable Energy %", "Water usage (m³)", "Waste Recycled %",
             "Biodiversity Risk %", "Gender Pay Gap %", "Board Diversity %",
-            "ESG KPI's in Exec Pay", "Transition Plan", "Revenue", "Expected Return (%)"
+            "Revenue", "Expected Return (%)"
         ]
 
         if not all(col in df.columns for col in required_columns):
@@ -127,51 +127,28 @@ if uploaded_file:
                 except:
                     st.warning(f"Error processing {metric}.")
 
-            # --- Section 3: Disclosure Benchmarks ---
-            st.header("3. Disclosure Benchmarks")
-            qualitative = ["ESG KPI's in Exec Pay", "Transition Plan"]
-            score_map = {
-                "SBTi 2030": 100, "Net Zero 2030": 100, "SBTi 2040": 80,
-                "Net Zero 2040": 80, "SBTi 2050": 60, "Net Zero 2050": 60,
-                "Carbon Neutral": 40
-            }
-            for metric in qualitative:
-                st.subheader(f"📋 {metric} Disclosure")
-                bench = load_benchmark(metric, industry, size)
-                if bench is None or metric not in bench.columns:
-                    continue
-                values = bench[metric].dropna().astype(str).str.strip()
-                val = str(company[metric]).strip()
-
-                if metric == "Transition Plan":
-                    company["Transition Plan Score"] = score_map.get(val, 0)
-                else:
-                    pass  # handled later in G-score
-
-            # --- Section 4: ESG Peer Score ---
-            st.header("4. ESG Peer Score")
+            # --- Section 3: ESG Peer Score ---
+            st.header("3. ESG Peer Score")
             E_metrics = {
                 "GHG Emissions (tCO₂e)": True,
                 "Water usage (m³)": True,
                 "Renewable Energy %": False,
                 "Waste Recycled %": False,
-                "Biodiversity Risk %": True,
-                "Transition Plan Score": None
+                "Biodiversity Risk %": True
             }
             S_metrics = {
                 "Gender Pay Gap %": True,
                 "Board Diversity %": False
             }
             E_raw = sum(100 - company.get(f"{m} Percentile", 0) if inv else company.get(f"{m} Percentile", 0)
-                        for m, inv in E_metrics.items() if m != "Transition Plan Score")
-            E_raw += company.get("Transition Plan Score", 0)
+                        for m, inv in E_metrics.items())
             E_score = E_raw * (60 / (len(E_metrics) * 100))
 
             S_raw = sum(100 - company.get(f"{m} Percentile", 0) if inv else company.get(f"{m} Percentile", 0)
                         for m, inv in S_metrics.items())
             S_score = S_raw * (30 / (len(S_metrics) * 100))
 
-            G_score = 10 if str(company.get("ESG KPI's in Exec Pay", "")).lower() == "yes" else 0
+            G_score = 0  # Removed KPI and Transition plan scoring
             total_score = E_score + S_score + G_score
 
             st.markdown(f"**Environmental Score:** {E_score:.2f} / 60")
@@ -179,8 +156,8 @@ if uploaded_file:
             st.markdown(f"**Governance Score:** {G_score:.2f} / 10")
             st.markdown(f"**🔵 Total ESG Peer Score:** {total_score:.2f} / 100")
 
-            # --- Section 5: ESG vs Expected Return ---
-            st.header("5. ESG Score vs Expected Return")
+            # --- Section 4: ESG vs Expected Return ---
+            st.header("4. ESG Score vs Expected Return")
             esg_return_path = f"data/benchmarks/{industry.lower().replace(' ', '_')}/{size}/esg_return_benchmark.csv"
             if os.path.exists(esg_return_path):
                 try:
