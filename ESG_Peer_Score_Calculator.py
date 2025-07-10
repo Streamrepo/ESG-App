@@ -46,7 +46,7 @@ def load_benchmark(metric_name, industry, size):
 
 # --- Upload Section ---
 st.header("Upload Portfolio ESG & Compliance Data")
-uploaded_file = st.file_uploader("Upload your ESG data"), type=["csv"])
+uploaded_file = st.file_uploader(("Upload your ESG data"), type=["csv"])
 
 if uploaded_file:
     try:
