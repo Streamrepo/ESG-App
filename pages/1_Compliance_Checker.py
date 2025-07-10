@@ -19,7 +19,7 @@ with col2:
     st.image(ey_logo, width=250)  # Adjust width to fit nicely
 
 
-uploaded_file = st.file_uploader("Upload CSRD Compliance CSV", type=["csv"])
+uploaded_file = st.file_uploader("Upload CSRD Compliance", type=["csv"])
 
 if uploaded_file is not None:
     df = pd.read_csv(uploaded_file)
