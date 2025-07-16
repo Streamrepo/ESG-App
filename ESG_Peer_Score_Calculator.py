@@ -8,13 +8,10 @@ from scipy.stats import beta
 from scipy.optimize import curve_fit
 from PIL import Image
 
-# ✅ Must come before any Streamlit content
 st.set_page_config(page_title="ESG Analyzer", layout="wide")
 
-# Load EY logo
 ey_logo = Image.open("assets/ey_logo.png")  # Adjust path if needed
 
-# Create horizontal layout
 col1, col2 = st.columns([3, 1])  # Wider left column for title
 
 with col1:
@@ -24,7 +21,6 @@ with col2:
     st.image(ey_logo, width=250)  # Adjust width to fit nicely
 
 
-# --- Company Size Classification ---
 def classify_company_size(Revenue, employees):
     if Revenue >= 1_000_000_000 or employees >= 2500:
         return "L"
@@ -35,7 +31,6 @@ def classify_company_size(Revenue, employees):
     else:
         return "S"
 
-# --- Load benchmark based on industry/size/metric ---
 def load_benchmark(metric_name, industry, size):
     file_name = metric_name.lower().replace(" ", "_").replace("%", "").replace("’", "").replace("'", "")
     path = f"data/benchmarks/{industry.lower().replace(' ', '_')}/{size}/{file_name}.csv"
@@ -45,7 +40,6 @@ def load_benchmark(metric_name, industry, size):
         st.warning(f"⚠️ Benchmark for '{metric_name}' not found at: {path}")
         return None
 
-# --- Upload Section ---
 st.header("Upload Portfolio ESG & Compliance Data")
 uploaded_file = st.file_uploader(("Upload your ESG data"), type=["csv"])
 
@@ -71,7 +65,6 @@ if uploaded_file:
             size = company["Size"]
             num_employees = company["Number of employees"]
 
-            # --- Section 1: SLR Scatterplot ---
             for metric in ["GHG Emissions (tCO₂e)", "Water usage (m³)"]:
                 st.subheader(f"📊 {metric} vs Number of Employees")
                 short_metric = "GHG Emissions" if "GHG" in metric else "Water usage"
