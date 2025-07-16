@@ -6,10 +6,8 @@ from utils.csrd_summary_generator import generate_csrd_summary
 from PIL import Image
 
 
-# Load EY logo
 ey_logo = Image.open("assets/ey_logo.png")  # Adjust path if needed
 
-# Create horizontal layout
 col1, col2 = st.columns([3, 1])  # Wider left column for title
 
 with col1:
@@ -31,7 +29,6 @@ if uploaded_file is not None:
     st.subheader("📊 Compliance Data (Top 10 Required Rows)")
     st.dataframe(df_subset)
 
-    # 🔍 Missing value check
     response_col = df.columns[3]
     evidence_col = df.columns[5]
 
@@ -53,7 +50,6 @@ if uploaded_file is not None:
     else:
         st.success("✅ All required disclosures (rows 0–9) have valid responses and evidence.")
 
-    # ✅ Compliance check (only top 10)
     df_compliance = check_compliance(df_subset)
 
     # 🚨 Show non-compliant rows with notes
